@@ -24,3 +24,6 @@ apps/server/.env*
 .opencode
 .workbuddy
 .codebuddy/memory
+
+# 本地上传目录（运行时生成，不随代码入库）
+apps/server/uploads
