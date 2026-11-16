@@ -8,6 +8,8 @@ declare module 'vue-router' {
     title?: string
     /** 路由图标 */
     icon?: string
+    /** 是否为公开页面（无需登录即可访问，如官网首页） */
+    public?: boolean
     /** 是否在侧边栏隐藏 */
     hidden?: boolean
     /** 高亮侧边栏菜单 */

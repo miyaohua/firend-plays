@@ -4,11 +4,18 @@ import { RouterConstant } from '../router.constant'
 
 export const STATIC_ROUTE_LIST: RouteRecordRaw[] = [
   {
+    name: RouterConstant.SITE_PAGE_NAME,
+    path: RouterConstant.SITE_PAGE_URL,
+    component: () => import('@/views/site/index.vue'),
+    meta: { title: '首页', public: true },
+  },
+
+  {
     name: RouterConstant.LAYOUT_NAME, // 布局路由配置 确保可以显示布局框架
-    path: '',
+    path: RouterConstant.LAYOUT_CONTAINER_URL, // 根路径已让给官网，这里只作动态路由挂载点
     component: Layout,
     redirect: RouterConstant.HOME_PAGE_URL,
-    children: [{ name: RouterConstant.HOME_PAGE_NAME, path: 'dashboard', component: () => import('@/views/dashboard/index.vue'), meta: { title: '首页', icon: 'Home', affix: true } }],
+    children: [{ name: RouterConstant.HOME_PAGE_NAME, path: RouterConstant.HOME_PAGE_URL, component: () => import('@/views/dashboard/index.vue'), meta: { title: '首页', icon: 'Home', affix: true } }],
   },
 
   {

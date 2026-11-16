@@ -4,13 +4,18 @@
       <div class="not-found__code">404</div>
       <h1 class="not-found__title">页面走丢了...</h1>
       <p class="not-found__desc">您访问的页面不存在，请检查链接地址是否正确</p>
-      <router-link to="/" class="not-found__btn">返回首页</router-link>
+      <router-link :to="homePageUrl" class="not-found__btn">返回首页</router-link>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 defineOptions({ name: 'NotFound' })
+
+import { RouterConstant } from '@/router/router.constant'
+
+/** 后台首页地址（根路径已让给官网） */
+const homePageUrl = RouterConstant.HOME_PAGE_URL
 </script>
 
 <style lang="scss" scoped>
