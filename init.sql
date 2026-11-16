@@ -488,4 +488,89 @@ CREATE TABLE `sys_user_role` (
 -- ----------------------------
 INSERT INTO `sys_user_role` VALUES ('30bb5fcd-b6d0-45b4-979c-796a8d993cbf', '5e2db9ff-0913-4b92-91bc-ef329619842a');
 INSERT INTO `sys_user_role` VALUES ('866b0232-507b-42a4-bdc1-47fc4a83616a', '0138f9e4-666c-4a0b-8c38-dba80e875774');
+-- ----------------------------
+-- Records of sys_dict_type（武器分类）
+-- ----------------------------
+INSERT INTO `sys_dict_type` VALUES ('2026-11-16 08:30:24', '2026-11-16 08:30:24', NULL, 'admin', 'admin', 'b4e96329-a611-4235-9fe1-18ea270c0e57', '精确射手步枪', 'weapon_dmr', '1', '武器分类：精确射手步枪');
+INSERT INTO `sys_dict_type` VALUES ('2026-11-16 08:30:19', '2026-11-16 08:30:19', NULL, 'admin', 'admin', '8d05a218-a567-489d-abd9-da6cb60c74b9', '轻机枪', 'weapon_lmg', '1', '武器分类：轻机枪');
+INSERT INTO `sys_dict_type` VALUES ('2026-11-16 08:30:42', '2026-11-16 08:30:42', NULL, 'admin', 'admin', 'a2846f31-cbf2-43c6-8599-d9a4ca65f528', '手枪', 'weapon_pistol', '1', '武器分类：手枪');
+INSERT INTO `sys_dict_type` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', '892a899f-3e42-424d-b034-4ae837b660ed', '步枪', 'weapon_rifle', '1', '武器分类：步枪');
+INSERT INTO `sys_dict_type` VALUES ('2026-11-16 08:30:13', '2026-11-16 08:30:13', NULL, 'admin', 'admin', '191b5492-8d2e-47bf-b6df-6949ff61a085', '霰弹枪', 'weapon_shotgun', '1', '武器分类：霰弹枪');
+INSERT INTO `sys_dict_type` VALUES ('2026-11-16 08:29:58', '2026-11-16 08:29:58', NULL, 'admin', 'admin', 'a3360ae8-3753-462d-a6ae-fa5f86e980d1', '冲锋枪', 'weapon_smg', '1', '武器分类：冲锋枪');
+INSERT INTO `sys_dict_type` VALUES ('2026-11-16 08:30:36', '2026-11-16 08:30:36', NULL, 'admin', 'admin', '3b0ea0d2-6282-455c-939f-5eb531291edd', '狙击步枪', 'weapon_sniper', '1', '武器分类：狙击步枪');
+INSERT INTO `sys_dict_type` VALUES ('2026-11-16 08:30:50', '2026-11-16 08:30:50', NULL, 'admin', 'admin', '71a2eb1b-bd0a-492c-944b-e7b3e95325d8', '特殊武器', 'weapon_special', '1', '武器分类：特殊武器');
+
+-- ----------------------------
+-- Records of sys_dict_data（各分类下的武器）
+-- ----------------------------
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:25', '2026-11-16 08:30:25', NULL, 'admin', 'admin', 'd8812814-cf89-4547-9b32-2c7f9b66c767', 1, NULL, '1', 'SVCH精确射手步枪', 'SVCH精确射手步枪', 'weapon_dmr', '精确射手步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:26', '2026-11-16 08:30:26', NULL, 'admin', 'admin', '358fe655-2735-464d-8ab2-d13a80246f20', 2, NULL, '1', '杠杆式步枪', '杠杆式步枪', 'weapon_dmr', '精确射手步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:27', '2026-11-16 08:30:27', NULL, 'admin', 'admin', 'ada599e3-5430-4ff5-b3ab-b797344442ce', 3, NULL, '1', 'PSG-1射手步枪', 'PSG-1射手步枪', 'weapon_dmr', '精确射手步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:28', '2026-11-16 08:30:28', NULL, 'admin', 'admin', '5a718e8f-8d6c-4b3b-b991-abeae3e1c329', 4, NULL, '1', 'SR9射手步枪', 'SR9射手步枪', 'weapon_dmr', '精确射手步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:29', '2026-11-16 08:30:29', NULL, 'admin', 'admin', '95c906b5-afdd-412a-a0de-60fd6e2daa2a', 5, NULL, '1', 'SR-25射手步枪', 'SR-25射手步枪', 'weapon_dmr', '精确射手步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:31', '2026-11-16 08:30:31', NULL, 'admin', 'admin', 'a393d522-1a13-47ce-a86e-394a8a1f076d', 6, NULL, '1', 'SKS射手步枪', 'SKS射手步枪', 'weapon_dmr', '精确射手步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:32', '2026-11-16 08:30:32', NULL, 'admin', 'admin', '65930c74-a366-428f-9843-0fcd41d22640', 7, NULL, '1', 'M14射手步枪', 'M14射手步枪', 'weapon_dmr', '精确射手步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:33', '2026-11-16 08:30:33', NULL, 'admin', 'admin', '878aff88-9d5a-4216-acd0-efd31e7a8a8e', 8, NULL, '1', 'SVD狙击步枪', 'SVD狙击步枪', 'weapon_dmr', '精确射手步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:34', '2026-11-16 08:30:34', NULL, 'admin', 'admin', '5dbd5d48-8e3b-43fb-93a9-42fb4ebe7424', 9, NULL, '1', 'VSS射手步枪', 'VSS射手步枪', 'weapon_dmr', '精确射手步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:35', '2026-11-16 08:30:35', NULL, 'admin', 'admin', '3e2e235a-4ba3-4f0c-b0c1-51c5a3bb1441', 10, NULL, '1', 'Mini-14射手步枪', 'Mini-14射手步枪', 'weapon_dmr', '精确射手步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:20', '2026-11-16 08:30:20', NULL, 'admin', 'admin', 'a35e4be2-e20b-4de9-8d3a-c0950b299b86', 1, NULL, '1', 'QJB201轻机枪', 'QJB201轻机枪', 'weapon_lmg', '轻机枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:21', '2026-11-16 08:30:21', NULL, 'admin', 'admin', '8cc65825-29aa-42fd-bab8-47d7839b2690', 2, NULL, '1', 'M250通用机枪', 'M250通用机枪', 'weapon_lmg', '轻机枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:22', '2026-11-16 08:30:22', NULL, 'admin', 'admin', 'e9061e87-ab7e-421c-8a8c-c418f2214867', 3, NULL, '1', 'M249轻机枪', 'M249轻机枪', 'weapon_lmg', '轻机枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:23', '2026-11-16 08:30:23', NULL, 'admin', 'admin', '58eedbee-3ddf-4bda-9f1c-5a1f949d348f', 4, NULL, '1', 'PKM通用机枪', 'PKM通用机枪', 'weapon_lmg', '轻机枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:43', '2026-11-16 08:30:43', NULL, 'admin', 'admin', '06c145c7-7489-48c0-830f-3dd8fb640fee', 1, NULL, '1', 'M1911', 'M1911', 'weapon_pistol', '手枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:44', '2026-11-16 08:30:44', NULL, 'admin', 'admin', '330c6e27-640a-4e8f-838a-71b10bd30544', 2, NULL, '1', 'G17', 'G17', 'weapon_pistol', '手枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:45', '2026-11-16 08:30:45', NULL, 'admin', 'admin', 'fbcb006c-a9de-45d1-b7c3-1ec941cd237f', 3, NULL, '1', '93R', '93R', 'weapon_pistol', '手枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:46', '2026-11-16 08:30:46', NULL, 'admin', 'admin', '744f3602-a10c-4877-a225-624bb92ad3ab', 4, NULL, '1', 'G18', 'G18', 'weapon_pistol', '手枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:47', '2026-11-16 08:30:47', NULL, 'admin', 'admin', '3dd07651-6922-4f47-8197-ed330ffdd380', 5, NULL, '1', '沙漠之鹰', '沙漠之鹰', 'weapon_pistol', '手枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:49', '2026-11-16 08:30:49', NULL, 'admin', 'admin', 'e78ddd0c-7c72-4915-a42b-addc9092f4be', 6, NULL, '1', '.357左轮', '.357左轮', 'weapon_pistol', '手枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:50', '2026-11-16 08:30:50', NULL, 'admin', 'admin', 'd2538081-ac56-446f-a173-470c0db9b76d', 7, NULL, '1', 'QSZ92G', 'QSZ92G', 'weapon_pistol', '手枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', 'a1697e3d-8d98-4eb7-83a7-4ccfb90fd5b1', 1, NULL, '1', 'AN94突击步枪', 'AN94突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', 'a05ec1ff-a70c-4062-928d-c645a09e8b1d', 2, NULL, '1', 'MDR突击步枪', 'MDR突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', '367b9020-12e5-4c63-b6a9-b3bb8d3cb7ec', 3, NULL, '1', 'RM277突击步枪', 'RM277突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', '63f1271c-3e7b-43af-a476-a6b9ee72862d', 4, NULL, '1', 'AR57突击步枪', 'AR57突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', 'ab636624-14e6-403d-b58c-7fffa5723266', 5, NULL, '1', 'MCX LT突击步枪', 'MCX LT突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', '6c11dc9c-965e-44df-a337-e2eaa6c8ffd5', 6, NULL, '1', 'MK47突击步枪', 'MK47突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', '87e08d77-32ae-48eb-bdc9-be853e71f53a', 7, NULL, '1', 'KC17突击步枪', 'KC17突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', '098edc02-949a-4a38-b1f6-24d5b03ddb57', 8, NULL, '1', 'K437突击步枪', 'K437突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', '82c5abfd-244d-40ef-9b8a-46ce0b5c22ae', 9, NULL, '1', '腾龙突击步枪', '腾龙突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:24', '2026-11-16 08:29:24', NULL, 'admin', 'admin', 'c02333ad-f4e5-48f2-86b4-b791d4184dd0', 10, NULL, '1', 'AS Val突击步枪', 'AS Val突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:41', '2026-11-16 08:29:41', NULL, 'admin', 'admin', '2c3cf551-e460-45fa-94c1-92a81872b7ce', 11, NULL, '1', 'CAR-15突击步枪', 'CAR-15突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:43', '2026-11-16 08:29:43', NULL, 'admin', 'admin', '7ddf550f-7536-4671-b20d-7ee1257f8573', 12, NULL, '1', 'PTR-32突击步枪', 'PTR-32突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:44', '2026-11-16 08:29:44', NULL, 'admin', 'admin', '857b65eb-74e0-4eec-804d-d29d796a0de8', 13, NULL, '1', 'G3战斗步枪', 'G3战斗步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:45', '2026-11-16 08:29:45', NULL, 'admin', 'admin', '736fd616-79a7-4b55-9690-ceb713b74e31', 14, NULL, '1', 'SCAR-H战斗步枪', 'SCAR-H战斗步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:46', '2026-11-16 08:29:46', NULL, 'admin', 'admin', '26ad6bf5-60dc-4aee-bc04-cc8e319adfde', 15, NULL, '1', 'AK-12突击步枪', 'AK-12突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:47', '2026-11-16 08:29:47', NULL, 'admin', 'admin', '3be46abb-cca9-4641-8626-df23d1ae9a81', 16, NULL, '1', 'SG552突击步枪', 'SG552突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:49', '2026-11-16 08:29:49', NULL, 'admin', 'admin', '1da859b8-9dbe-422d-9942-10a81a979359', 17, NULL, '1', 'M7战斗步枪', 'M7战斗步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:50', '2026-11-16 08:29:50', NULL, 'admin', 'admin', '2b24148f-fa5b-4924-91bd-d0bde8b54434', 18, NULL, '1', 'AUG突击步枪', 'AUG突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:51', '2026-11-16 08:29:51', NULL, 'admin', 'admin', '7a5618b3-6c97-4f00-84b6-1f3b5af3ab7a', 19, NULL, '1', 'M16A4突击步枪', 'M16A4突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:52', '2026-11-16 08:29:52', NULL, 'admin', 'admin', '1eaad545-a1f3-49f0-a8c9-c409663d1125', 20, NULL, '1', 'K416突击步枪', 'K416突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:53', '2026-11-16 08:29:53', NULL, 'admin', 'admin', '5e18f670-1ffe-49b0-91a9-b26d2f2a53e7', 21, NULL, '1', 'ASH-12战斗步枪', 'ASH-12战斗步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:55', '2026-11-16 08:29:55', NULL, 'admin', 'admin', 'e053640c-8b40-4636-85fd-d864b251e587', 22, NULL, '1', 'AKS-74U突击步枪', 'AKS-74U突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:56', '2026-11-16 08:29:56', NULL, 'admin', 'admin', 'e2812310-cafb-44d2-8b47-25646f3c304f', 23, NULL, '1', 'QBZ95-1突击步枪', 'QBZ95-1突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:57', '2026-11-16 08:29:57', NULL, 'admin', 'admin', '83d8299a-2157-4e1b-acf1-3359fac17eed', 24, NULL, '1', 'AKM突击步枪', 'AKM突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:58', '2026-11-16 08:29:58', NULL, 'admin', 'admin', '2ddc5d94-3b8b-4c45-9bb2-200b383b0355', 25, NULL, '1', 'M4A1突击步枪', 'M4A1突击步枪', 'weapon_rifle', '步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:14', '2026-11-16 08:30:14', NULL, 'admin', 'admin', '0c8c01d7-8738-4234-b30c-3ad834b47d45', 1, NULL, '1', 'FS-12霰弹枪', 'FS-12霰弹枪', 'weapon_shotgun', '霰弹枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:15', '2026-11-16 08:30:15', NULL, 'admin', 'admin', '5a68b50a-3609-4bf5-bb0e-da6200524789', 2, NULL, '1', '725双管霰弹枪', '725双管霰弹枪', 'weapon_shotgun', '霰弹枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:16', '2026-11-16 08:30:16', NULL, 'admin', 'admin', 'f9e9ecd2-6dfb-468a-81f4-219baa3e05f9', 3, NULL, '1', 'M870霰弹枪', 'M870霰弹枪', 'weapon_shotgun', '霰弹枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:17', '2026-11-16 08:30:17', NULL, 'admin', 'admin', '048140a6-8ed8-4f33-ab5c-c23fa781d102', 4, NULL, '1', 'S12K霰弹枪', 'S12K霰弹枪', 'weapon_shotgun', '霰弹枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:19', '2026-11-16 08:30:19', NULL, 'admin', 'admin', '40e41b09-2c99-4a5b-9889-56a2045b0b8d', 5, NULL, '1', 'M1014霰弹枪', 'M1014霰弹枪', 'weapon_shotgun', '霰弹枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:29:59', '2026-11-16 08:29:59', NULL, 'admin', 'admin', '6e95aeb2-1101-445c-b148-32e79c0b65c8', 1, NULL, '1', '汤姆逊冲锋枪', '汤姆逊冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:01', '2026-11-16 08:30:01', NULL, 'admin', 'admin', '1cab232d-039b-4696-a1b1-fc591c1a51ff', 2, NULL, '1', 'MK4冲锋枪', 'MK4冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:02', '2026-11-16 08:30:02', NULL, 'admin', 'admin', '11c82948-503e-4feb-9683-84b2d96f85c7', 3, NULL, '1', 'QCQ171冲锋枪', 'QCQ171冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:03', '2026-11-16 08:30:03', NULL, 'admin', 'admin', '79271188-e7f2-4a1a-b538-c43a5c070070', 4, NULL, '1', 'MP7冲锋枪', 'MP7冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:04', '2026-11-16 08:30:04', NULL, 'admin', 'admin', 'b834f02d-1de5-4836-9f9f-ebe76b24b0bc', 5, NULL, '1', '勇士冲锋枪', '勇士冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:05', '2026-11-16 08:30:05', NULL, 'admin', 'admin', '80b820f4-135b-4687-92f2-8f075444af32', 6, NULL, '1', 'SR-3M紧凑突击步枪', 'SR-3M紧凑突击步枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:07', '2026-11-16 08:30:07', NULL, 'admin', 'admin', 'c7599094-a61c-481a-813a-72273f58430e', 7, NULL, '1', 'SMG-45冲锋枪', 'SMG-45冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:08', '2026-11-16 08:30:08', NULL, 'admin', 'admin', '768116cc-ade2-4ae4-b333-488b023fbb7d', 8, NULL, '1', '野牛冲锋枪', '野牛冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:09', '2026-11-16 08:30:09', NULL, 'admin', 'admin', '16d6be45-27b6-45dc-9461-8ec2554454c7', 9, NULL, '1', 'UZI冲锋枪', 'UZI冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:10', '2026-11-16 08:30:10', NULL, 'admin', 'admin', '289c5eaa-dd81-41dd-9237-c418afa8d8ae', 10, NULL, '1', 'Vector冲锋枪', 'Vector冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:11', '2026-11-16 08:30:11', NULL, 'admin', 'admin', '2b66bd0d-84b0-4d3c-9b6d-70704ae5f984', 11, NULL, '1', 'P90冲锋枪', 'P90冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:13', '2026-11-16 08:30:13', NULL, 'admin', 'admin', '7764f446-be09-41fe-9c6d-5d520eeb6aee', 12, NULL, '1', 'MP5冲锋枪', 'MP5冲锋枪', 'weapon_smg', '冲锋枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:37', '2026-11-16 08:30:37', NULL, 'admin', 'admin', '07b20cd9-9f9f-4a79-8a42-1a3efecfdd13', 1, NULL, '1', 'M82狙击步枪', 'M82狙击步枪', 'weapon_sniper', '狙击步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:38', '2026-11-16 08:30:38', NULL, 'admin', 'admin', 'a733cfc2-2ebe-441c-be21-4b94e4cd9ef9', 2, NULL, '1', 'AWM狙击步枪', 'AWM狙击步枪', 'weapon_sniper', '狙击步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:39', '2026-11-16 08:30:39', NULL, 'admin', 'admin', '300171fa-5489-4c48-a75a-032fc55a01e3', 3, NULL, '1', 'M700狙击步枪', 'M700狙击步枪', 'weapon_sniper', '狙击步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:40', '2026-11-16 08:30:40', NULL, 'admin', 'admin', '37566342-45c6-4edc-89ff-829f22489640', 4, NULL, '1', 'R93狙击步枪', 'R93狙击步枪', 'weapon_sniper', '狙击步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:41', '2026-11-16 08:30:41', NULL, 'admin', 'admin', '7acf8eb5-a15a-49de-9e7a-797e793ad3f7', 5, NULL, '1', 'SV-98狙击步枪', 'SV-98狙击步枪', 'weapon_sniper', '狙击步枪');
+INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:51', '2026-11-16 08:30:51', NULL, 'admin', 'admin', 'b582d52a-0dfb-4e20-b047-b6f4de0ba452', 1, NULL, '1', '复合弓', '复合弓', 'weapon_special', '特殊武器');
+
 SET FOREIGN_KEY_CHECKS = 1;
