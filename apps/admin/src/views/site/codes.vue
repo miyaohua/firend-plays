@@ -6,7 +6,6 @@
         <span class="codes-head__sep">/</span>
         <span>精选改枪码</span>
       </p>
-      <h1 class="codes-head__title">精选改枪码</h1>
       <p class="codes-head__desc">按「武器分类 → 枪械 → 改枪码」浏览，点击卡片右上角即可复制。</p>
     </header>
 
@@ -322,12 +321,6 @@ onMounted(async () => {
 
   &__sep {
     margin: 0 6px;
-  }
-
-  &__title {
-    margin: 0 0 10px;
-    font-size: 32px;
-    font-weight: 700;
   }
 
   &__desc {
