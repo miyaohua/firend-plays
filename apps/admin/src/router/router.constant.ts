@@ -14,6 +14,12 @@ export const RouterConstant = {
   /** 官网首页路由名称 */
   SITE_PAGE_NAME: 'Site',
 
+  /** 精选改枪码页路由地址 */
+  SITE_CODES_URL: '/codes',
+
+  /** 精选改枪码页路由名称 */
+  SITE_CODES_NAME: 'SiteCodes',
+
   /** 后台布局容器路径：让出根路径给官网，仅作为动态路由的挂载点，不会被直接访问 */
   LAYOUT_CONTAINER_URL: '/shell',
 
