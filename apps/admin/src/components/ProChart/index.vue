@@ -4,7 +4,8 @@
 </template>
 <script setup lang="ts">
 defineOptions({ name: 'ProChart' })
-import { echarts, getCssVar, isEmpty } from '@/utils'
+import { getCssVar, isEmpty } from '@/utils'
+import echarts from '@/utils/libs/echarts'
 import type { EChartsType, EChartsOption } from 'echarts'
 
 /**

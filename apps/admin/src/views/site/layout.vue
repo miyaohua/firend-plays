@@ -11,7 +11,7 @@
           <router-link to="/" class="site-nav__link" :class="{ 'is-active': isHome }">首页</router-link>
           <router-link to="/codes" class="site-nav__link" :class="{ 'is-active': isCodes }">精选改枪码</router-link>
           <router-link :to="{ path: '/', hash: '#how-to' }" class="site-nav__link site-nav__link--anchor">如何提交</router-link>
-          <el-button type="primary" round @click="goAdmin">进入后台</el-button>
+          <el-button type="primary" round @mouseenter="prefetchAdmin" @focus="prefetchAdmin" @click="goAdmin">进入后台</el-button>
         </nav>
       </div>
     </header>
@@ -42,6 +42,11 @@ const isCodes = computed(() => route.path === RouterConstant.SITE_CODES_URL)
 
 function goAdmin() {
   router.push(RouterConstant.HOME_PAGE_URL)
+}
+
+/** 悬浮/聚焦时预取后台首页 chunk（含图表依赖），点击进入时更快 */
+function prefetchAdmin() {
+  void import('@/views/dashboard/index.vue')
 }
 </script>
 

@@ -26,9 +26,8 @@ export async function globalRouterBeforeGuard(to: RouteLocationNormalized, from:
   try {
     // 已有角色权限，直接放行
     if (userStore.roles && userStore.roles.length > 0) return
-    // 未获取用户信息 → 拉取信息并生成动态路由
-    await userStore.getInfo()
-    await permissionStore.getRoutes()
+    // 未获取用户信息 → 并行拉取用户信息与路由菜单（两者互不依赖，省一个网络往返）
+    await Promise.all([userStore.getInfo(), permissionStore.getRoutes()])
     // 添加动态路由
     for (const route of permissionStore.dynamicRouteList) router.addRoute('Layout', route)
     // 动态路由添加后，重新导航到目标路由（replace: true 避免历史记录）
