@@ -573,4 +573,25 @@ INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:40', '2026-11-16 08:30:40'
 INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:41', '2026-11-16 08:30:41', NULL, 'admin', 'admin', '7acf8eb5-a15a-49de-9e7a-797e793ad3f7', 5, NULL, '1', 'SV-98狙击步枪', 'SV-98狙击步枪', 'weapon_sniper', '狙击步枪');
 INSERT INTO `sys_dict_data` VALUES ('2026-11-16 08:30:51', '2026-11-16 08:30:51', NULL, 'admin', 'admin', 'b582d52a-0dfb-4e20-b047-b6f4de0ba452', 1, NULL, '1', '复合弓', '复合弓', 'weapon_special', '特殊武器');
 
+-- ----------------------------
+-- Records of sys_menu（枪械管理 / 改枪码）
+-- ----------------------------
+INSERT INTO `sys_menu` VALUES ('2026-11-17 06:01:02', '2026-11-17 06:01:02', NULL, 'admin', 'admin', 'e16b7cec-0b13-4f63-a224-5e4af8a0d2d5', '0', 'gun', NULL, 'M', 'Operation', '枪械管理', '1', NULL, '1', 9, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-17 06:01:04', '2026-11-17 06:01:04', NULL, 'admin', 'admin', 'c384cddd-468c-442a-912e-444a5713332f', 'e16b7cec-0b13-4f63-a224-5e4af8a0d2d5', 'code', 'gun/code/index', 'C', 'Resource', '改枪码', '1', NULL, '1', 1, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-17 06:01:05', '2026-11-17 06:01:05', NULL, 'admin', 'admin', '591e598d-03a7-47ed-a3c6-5978368ea832', 'c384cddd-468c-442a-912e-444a5713332f', NULL, NULL, 'F', NULL, '改枪码查询', '1', 'gun:code:query', '1', 1, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-17 06:01:07', '2026-11-17 06:01:07', NULL, 'admin', 'admin', '42ebed0a-d6ba-4072-9cf9-5320efa42818', 'c384cddd-468c-442a-912e-444a5713332f', NULL, NULL, 'F', NULL, '改枪码新增', '1', 'gun:code:create', '1', 2, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-17 06:01:08', '2026-11-17 06:01:08', NULL, 'admin', 'admin', 'bda87ae8-07f7-4c35-a3aa-9ddb9ea87532', 'c384cddd-468c-442a-912e-444a5713332f', NULL, NULL, 'F', NULL, '改枪码编辑', '1', 'gun:code:update', '1', 3, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-17 06:01:09', '2026-11-17 06:01:09', NULL, 'admin', 'admin', '72fef65d-3a2e-43e3-912d-0af8a1e55066', 'c384cddd-468c-442a-912e-444a5713332f', NULL, NULL, 'F', NULL, '改枪码删除', '1', 'gun:code:delete', '1', 4, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-17 06:01:11', '2026-11-17 06:01:11', NULL, 'admin', 'admin', 'b5da286f-45fc-4b95-9b8a-7e2d76cc9554', 'c384cddd-468c-442a-912e-444a5713332f', NULL, NULL, 'F', NULL, '改枪码精选', '1', 'gun:code:feature', '1', 5, '0', '1');
+
+-- ----------------------------
+-- Records of sys_role_menu（普通用户授权）
+-- ----------------------------
+INSERT INTO `sys_role_menu` VALUES ('5e2db9ff-0913-4b92-91bc-ef329619842a', '42ebed0a-d6ba-4072-9cf9-5320efa42818');
+INSERT INTO `sys_role_menu` VALUES ('5e2db9ff-0913-4b92-91bc-ef329619842a', '591e598d-03a7-47ed-a3c6-5978368ea832');
+INSERT INTO `sys_role_menu` VALUES ('5e2db9ff-0913-4b92-91bc-ef329619842a', '72fef65d-3a2e-43e3-912d-0af8a1e55066');
+INSERT INTO `sys_role_menu` VALUES ('5e2db9ff-0913-4b92-91bc-ef329619842a', 'bda87ae8-07f7-4c35-a3aa-9ddb9ea87532');
+INSERT INTO `sys_role_menu` VALUES ('5e2db9ff-0913-4b92-91bc-ef329619842a', 'c384cddd-468c-442a-912e-444a5713332f');
+INSERT INTO `sys_role_menu` VALUES ('5e2db9ff-0913-4b92-91bc-ef329619842a', 'e16b7cec-0b13-4f63-a224-5e4af8a0d2d5');
+
 SET FOREIGN_KEY_CHECKS = 1;

@@ -10,6 +10,7 @@ import { AuthModule } from './modules/auth/auth.module'
 import { SystemModule } from './modules/system/system.module'
 import { MonitorModule } from './modules/monitor/monitor.module'
 import { DashboardModule } from './modules/dashboard/dashboard.module'
+import { GunModule } from './modules/gun/gun.module'
 import { CommonModule } from './modules/common/common.module'
 
 @Module({
@@ -23,6 +24,7 @@ import { CommonModule } from './modules/common/common.module'
     SystemModule, // 系统管理
     MonitorModule, // 系统监控模块
     DashboardModule, // 首页统计
+    GunModule, // 枪械改枪码
   ],
 
   providers: [
