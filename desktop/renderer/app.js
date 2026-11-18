@@ -10,6 +10,9 @@ const state = {
   view: 'featured',
   user: null,
   captcha: null,
+  keyword: '',
+  adContact: 'business@example.com',
+  confirmAction: null,
   loading: false,
 }
 
@@ -43,6 +46,16 @@ const dom = {
   submitRemark: document.getElementById('submitRemark'),
   submitError: document.getElementById('submitError'),
   submitConfirm: document.getElementById('submitConfirm'),
+  searchInput: document.getElementById('searchInput'),
+  toolbar: document.getElementById('toolbar'),
+  adContactBtn: document.getElementById('adContactBtn'),
+  adContact: document.getElementById('adContact'),
+  adCopyBtn: document.getElementById('adCopyBtn'),
+  adModal: document.getElementById('adModal'),
+  confirmModal: document.getElementById('confirmModal'),
+  confirmTitle: document.getElementById('confirmTitle'),
+  confirmMessage: document.getElementById('confirmMessage'),
+  confirmOk: document.getElementById('confirmOk'),
 }
 
 let toastTimer = null
@@ -67,6 +80,21 @@ function normalizeError(error) {
 
 function showModal(modal) {
   modal.hidden = false
+}
+
+/** 打开通用确认弹窗，确认后执行 action */
+function openConfirm(title, message, action) {
+  state.confirmAction = action
+  dom.confirmTitle.textContent = title
+  dom.confirmMessage.textContent = message
+  showModal(dom.confirmModal)
+}
+
+async function runConfirmAction() {
+  const action = state.confirmAction
+  state.confirmAction = null
+  hideModal(dom.confirmModal)
+  if (action) await action()
 }
 
 function hideModal(modal) {
@@ -180,9 +208,15 @@ function renderGuns() {
 }
 
 function renderCodes() {
-  const codes = codesOf(state.selectedType, state.selectedGun)
+  const keyword = state.keyword.trim().toLowerCase()
+  const allCodes = codesOf(state.selectedType, state.selectedGun)
+  const codes = keyword ? allCodes.filter((item) => item.code.toLowerCase().includes(keyword) || (item.remark ?? '').toLowerCase().includes(keyword)) : allCodes
 
   if (!codes.length) {
+    if (keyword) {
+      renderPlaceholder('没有匹配的改枪码', `当前分类下没有包含「${state.keyword.trim()}」的改枪码，换个关键词试试`)
+      return
+    }
     if (state.view === 'mine' && state.mineError) {
       renderPlaceholder('无法获取我的提交', state.mineError, true)
       return
@@ -297,6 +331,8 @@ function updateAuthUi() {
   dom.loginBtn.hidden = loggedIn
   dom.userBox.hidden = !loggedIn
   dom.viewSwitch.hidden = !loggedIn
+  // 未登录时工具栏里没有内容，整行隐藏，避免留白
+  dom.toolbar.hidden = !loggedIn
   if (loggedIn) dom.userName.textContent = state.user.nickname || state.user.username
 }
 
@@ -405,18 +441,20 @@ async function handleLogin() {
   }
 }
 
-async function handleLogout() {
-  await window.desktop.logout()
-  state.user = null
-  state.mine = []
-  state.mineError = ''
-  state.view = 'featured'
-  for (const button of dom.viewSwitch.querySelectorAll('.view-switch__item')) {
-    button.classList.toggle('is-active', button.dataset.view === 'featured')
-  }
-  updateAuthUi()
-  renderAll()
-  showToast('已退出登录')
+function handleLogout() {
+  openConfirm('退出登录', '确认退出当前账号吗？退出后需要重新登录才能提交改枪码。', async () => {
+    await window.desktop.logout()
+    state.user = null
+    state.mine = []
+    state.mineError = ''
+    state.view = 'featured'
+    for (const button of dom.viewSwitch.querySelectorAll('.view-switch__item')) {
+      button.classList.toggle('is-active', button.dataset.view === 'featured')
+    }
+    updateAuthUi()
+    renderAll()
+    showToast('已退出登录')
+  })
 }
 
 /* ---------------- 提交改枪码 ---------------- */
@@ -499,6 +537,7 @@ async function bootstrap() {
   const config = await window.desktop.getConfig()
   state.apiBase = config.apiBase
   state.version = config.version
+  state.adContact = config.adContact || state.adContact
   dom.apiBase.textContent = `接口：${config.apiBase}`
   dom.version.textContent = `v${config.version}`
 
@@ -506,6 +545,19 @@ async function bootstrap() {
   updateAuthUi()
 
   dom.refresh.addEventListener('click', refreshAll)
+  dom.searchInput.addEventListener('input', () => {
+    state.keyword = dom.searchInput.value
+    renderCodes()
+  })
+  dom.adContactBtn.addEventListener('click', () => {
+    dom.adContact.textContent = state.adContact
+    showModal(dom.adModal)
+  })
+  dom.adCopyBtn.addEventListener('click', async () => {
+    await window.desktop.copy(state.adContact)
+    showToast('商务邮箱已复制')
+  })
+  dom.confirmOk.addEventListener('click', runConfirmAction)
   dom.loginBtn.addEventListener('click', openLoginModal)
   dom.logoutBtn.addEventListener('click', handleLogout)
   dom.submitBtn.addEventListener('click', openSubmitModal)

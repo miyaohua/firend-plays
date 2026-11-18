@@ -31,19 +31,22 @@ body {
 
 .brand {
   display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.brand__logo {
-  width: 26px;
-  height: 26px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
 }
 
 .brand__title {
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.brand__subtitle {
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1.2;
 }
 
 .header-actions {
@@ -151,7 +154,7 @@ body {
   background: #2563eb;
 }
 
-.type-item.is-empty {
+.type-item.is-empty:not(.is-active) {
   color: #6b7280;
 }
 
@@ -506,4 +509,98 @@ body {
 
 [hidden] {
   display: none !important;
+}
+
+/* ---------- 工具栏与搜索 ---------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.toolbar .view-switch {
+  margin-bottom: 0;
+}
+
+.search {
+  margin-bottom: 14px;
+}
+
+.search__input {
+  width: 100%;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #1f2937;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search__input::placeholder {
+  color: #9ca3af;
+}
+
+.search__input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+/* ---------- 预留广告位 ---------- */
+.ad-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: #fafafa;
+  border: 1px dashed #d1d5db;
+  border-radius: 12px;
+}
+
+
+.ad-slot__label {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  font-size: 11px;
+  color: #6b7280;
+  background: #eef0f4;
+  border-radius: 4px;
+}
+
+.ad-slot__text {
+  flex: 1;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.ad-slot__action {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #2563eb;
+  background: #ffffff;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.ad-slot__action:hover {
+  background: rgba(37, 99, 235, 0.06);
+}
+
+/* ---------- 确认弹窗 ---------- */
+.modal__panel--sm {
+  width: 320px;
+}
+
+.modal__message {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #4b5563;
 }

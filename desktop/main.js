@@ -104,7 +104,7 @@ function createWindow() {
     height: 880,
     minWidth: 980,
     minHeight: 640,
-    title: '精选改枪码',
+    title: '改枪坊',
     backgroundColor: '#ffffff',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -123,7 +123,12 @@ function createWindow() {
   })
 }
 
-ipcMain.handle('app:config', () => ({ apiBase: API_BASE, version: app.getVersion(), platform: process.platform }))
+ipcMain.handle('app:config', () => ({
+  apiBase: API_BASE,
+  version: app.getVersion(),
+  platform: process.platform,
+  adContact: process.env.DESKTOP_AD_CONTACT || 'business@example.com',
+}))
 
 /** 公开接口（分类选项、精选列表） */
 ipcMain.handle('api:request', (_event, requestPath) => requestApi(requestPath))

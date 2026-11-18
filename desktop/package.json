@@ -16,7 +16,7 @@
   },
   "build": {
     "appId": "com.friendplays.guncode",
-    "productName": "精选改枪码",
+    "productName": "改枪坊",
     "files": [
       "main.js",
       "preload.js",

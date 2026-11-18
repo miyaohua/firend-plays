@@ -1,6 +1,6 @@
-# 精选改枪码桌面端（Electron）
+# 改枪坊 · 桌面端（Electron）
 
-把官网的「精选改枪码」页面单独做成桌面客户端，只读浏览 + 一键复制，不打包后台管理。
+把「精选改枪码」页面单独做成桌面客户端：浏览、复制、登录投稿、我的提交与收藏筛选，不打包后台管理。
 
 ## 运行
 
@@ -50,7 +50,7 @@ npm run dist:win   # 产出 nsis 安装包（需在 Windows 或 CI 上执行）
 产物在 `desktop/release/`。
 
 > 注意：macOS 未签名时首次打开会被 Gatekeeper 拦截，需右键「打开」或执行
-> `xattr -dr com.apple.quarantine "/Applications/精选改枪码.app"`。
+> `xattr -dr com.apple.quarantine "/Applications/改枪坊.app"`。
 > 正式分发需要 Apple 开发者账号签名与公证。
 
 ## 实现要点
@@ -62,6 +62,15 @@ npm run dist:win   # 产出 nsis 安装包（需在 Windows 或 CI 上执行）
 | 安全配置 | `contextIsolation: true`、`nodeIntegration: false`，preload 只暴露 3 个方法 |
 | 数据来源 | 只调用两个公开接口：`/gun/code/options`（分类与枪械）、`/gun/code/featured`（精选码，服务端有 120 秒缓存） |
 | 自动刷新 | 每 5 分钟拉一次，也可点右上角「刷新」 |
+
+## 客户端能力
+
+| 能力 | 说明 |
+|---|---|
+| 浏览 | 左侧武器分类 → 枪械 → 改枪码卡片，支持分类内模糊搜索（改枪码 / 备注） |
+| 复制 | 一键复制改枪码到系统剪贴板 |
+| 登录 | 账号密码 + 图片验证码，登录后可投稿与查看「我的提交」 |
+| 广告位 | 列表上方预留广告合作位，联系方式可用 `DESKTOP_AD_CONTACT` 环境变量覆盖 |
 
 ## 与网页版的关系
 
