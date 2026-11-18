@@ -57,8 +57,8 @@
     </main>
 
     <footer class="app-footer">
-      <span id="apiBase">接口：-</span>
-      <span id="version"></span>
+      <span>©好友玩平台旗下 - 改枪坊</span>
+      <button id="version" class="footer-link" type="button" title="关于">v1.0.0</button>
     </footer>
 
     <!-- 登录弹窗 -->
@@ -152,6 +152,19 @@
         <div class="modal__actions">
           <button class="button button--ghost" type="button" data-close="adModal">关闭</button>
           <button id="adCopyBtn" class="button button--primary" type="button">复制邮箱</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 关于（接口地址等诊断信息放在这里，不占界面） -->
+    <div id="aboutModal" class="modal" hidden>
+      <div class="modal__mask" data-close="aboutModal"></div>
+      <div class="modal__panel modal__panel--sm">
+        <h2 class="modal__title">关于改枪坊</h2>
+        <p class="modal__message" id="aboutVersion"></p>
+        <p class="modal__message" id="aboutApi"></p>
+        <div class="modal__actions">
+          <button class="button button--primary" type="button" data-close="aboutModal">知道了</button>
         </div>
       </div>
     </div>

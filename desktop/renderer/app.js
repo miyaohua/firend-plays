@@ -21,7 +21,9 @@ const dom = {
   gunList: document.getElementById('gunList'),
   codeList: document.getElementById('codeList'),
   status: document.getElementById('status'),
-  apiBase: document.getElementById('apiBase'),
+  aboutVersion: document.getElementById('aboutVersion'),
+  aboutApi: document.getElementById('aboutApi'),
+  aboutModal: document.getElementById('aboutModal'),
   version: document.getElementById('version'),
   refresh: document.getElementById('refresh'),
   toast: document.getElementById('toast'),
@@ -538,8 +540,10 @@ async function bootstrap() {
   state.apiBase = config.apiBase
   state.version = config.version
   state.adContact = config.adContact || state.adContact
-  dom.apiBase.textContent = `接口：${config.apiBase}`
   dom.version.textContent = `v${config.version}`
+  dom.aboutVersion.textContent = `版本：${config.version}`
+  dom.aboutApi.textContent = `接口地址：${config.apiBase}`
+  dom.version.addEventListener('click', () => showModal(dom.aboutModal))
 
   state.user = await window.desktop.getSession()
   updateAuthUi()
