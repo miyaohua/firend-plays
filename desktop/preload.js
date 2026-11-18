@@ -15,6 +15,12 @@ contextBridge.exposeInMainWorld('desktop', {
   getCaptcha: () => ipcRenderer.invoke('auth:captcha'),
   /** 登录（credentials：username / password / captcha / uuid） */
   login: (credentials) => ipcRenderer.invoke('auth:login', credentials),
+  /** 发送短信验证码（scene：register / login / reset） */
+  sendSms: (payload) => ipcRenderer.invoke('auth:sendSms', payload),
+  /** 短信验证码登录 */
+  loginBySms: (payload) => ipcRenderer.invoke('auth:loginBySms', payload),
+  /** 短信验证码重置密码 */
+  resetPassword: (payload) => ipcRenderer.invoke('auth:resetPassword', payload),
   /** 自助注册（成功后自动登录） */
   register: (form) => ipcRenderer.invoke('auth:register', form),
   /** 退出登录 */

@@ -10,7 +10,9 @@ const state = {
   view: 'featured',
   user: null,
   captcha: null,
-  registerCaptcha: null,
+  loginMode: 'password',
+  smsCountdown: { login: 0, register: 0 },
+  smsTimers: { login: null, register: null },
   keyword: '',
   adContact: '2542571191@qq.com',
   siteUrl: 'http://localhost:5173',
@@ -53,9 +55,14 @@ const dom = {
   regConfirm: document.getElementById('regConfirm'),
   regPhone: document.getElementById('regPhone'),
   regNickname: document.getElementById('regNickname'),
-  regCaptcha: document.getElementById('regCaptcha'),
-  regCaptchaField: document.getElementById('regCaptchaField'),
-  regCaptchaImage: document.getElementById('regCaptchaImage'),
+  regSmsCode: document.getElementById('regSmsCode'),
+  regSmsSendBtn: document.getElementById('regSmsSendBtn'),
+  smsPhone: document.getElementById('smsPhone'),
+  smsCode: document.getElementById('smsCode'),
+  smsSendBtn: document.getElementById('smsSendBtn'),
+  passwordLoginPanel: document.getElementById('passwordLoginPanel'),
+  smsLoginPanel: document.getElementById('smsLoginPanel'),
+  forgotLink: document.getElementById('forgotLink'),
   regError: document.getElementById('regError'),
   regSubmit: document.getElementById('regSubmit'),
   submitModal: document.getElementById('submitModal'),
@@ -534,7 +541,90 @@ async function openLoginModal() {
   await refreshCaptcha()
 }
 
+function setLoginMode(mode) {
+  state.loginMode = mode
+  const isPassword = mode === 'password'
+  dom.passwordLoginPanel.hidden = !isPassword
+  dom.smsLoginPanel.hidden = isPassword
+  for (const button of document.querySelectorAll('[data-login-mode]')) {
+    button.classList.toggle('is-active', button.dataset.loginMode === mode)
+  }
+  dom.loginError.textContent = ''
+}
+
+/** 短信验证码倒计时：kind 为 login / register */
+function startSmsCountdown(kind) {
+  const button = kind === 'login' ? dom.smsSendBtn : dom.regSmsSendBtn
+  clearInterval(state.smsTimers[kind])
+  state.smsCountdown[kind] = 60
+  button.disabled = true
+  button.textContent = '60s'
+  state.smsTimers[kind] = setInterval(() => {
+    state.smsCountdown[kind] -= 1
+    if (state.smsCountdown[kind] <= 0) {
+      clearInterval(state.smsTimers[kind])
+      state.smsTimers[kind] = null
+      button.disabled = false
+      button.textContent = '发送验证码'
+    } else {
+      button.textContent = `${state.smsCountdown[kind]}s`
+    }
+  }, 1000)
+}
+
+/** 发送短信验证码：kind 为 login / register */
+async function sendSms(kind) {
+  const isLogin = kind === 'login'
+  const phone = (isLogin ? dom.smsPhone.value : dom.regPhone.value).trim()
+  const errorElement = isLogin ? dom.loginError : dom.regError
+  errorElement.textContent = ''
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    errorElement.textContent = '请输入正确的手机号'
+    return
+  }
+  try {
+    const result = await window.desktop.sendSms({ scene: isLogin ? 'login' : 'register', phone })
+    showToast(result.mockCode ? `验证码已发送（本地模拟：${result.mockCode}）` : '验证码已发送，请注意查收')
+    startSmsCountdown(kind)
+  } catch (error) {
+    errorElement.textContent = normalizeError(error)
+  }
+}
+
+async function handleSmsLogin() {
+  const phone = dom.smsPhone.value.trim()
+  const code = dom.smsCode.value.trim()
+  dom.loginError.textContent = ''
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    dom.loginError.textContent = '请输入正确的手机号'
+    return
+  }
+  if (!/^\d{6}$/.test(code)) {
+    dom.loginError.textContent = '请输入 6 位短信验证码'
+    return
+  }
+
+  dom.loginSubmit.disabled = true
+  try {
+    const user = await window.desktop.loginBySms({ phone, code })
+    state.user = user
+    hideModal(dom.loginModal)
+    updateAuthUi()
+    showToast(`欢迎回来，${user.nickname || user.username}`)
+    await loadMine()
+    renderAll()
+  } catch (error) {
+    dom.loginError.textContent = normalizeError(error)
+  } finally {
+    dom.loginSubmit.disabled = false
+  }
+}
+
 async function handleLogin() {
+  if (state.loginMode === 'sms') {
+    await handleSmsLogin()
+    return
+  }
   const username = dom.loginUsername.value.trim()
   const password = dom.loginPassword.value
   const captcha = dom.loginCaptcha.value.trim()
@@ -584,23 +674,6 @@ function handleLogout() {
 
 /* ---------------- 注册 ---------------- */
 
-async function refreshRegisterCaptcha() {
-  try {
-    const payload = await window.desktop.getCaptcha()
-    state.registerCaptcha = payload
-    if (payload.enabled) {
-      dom.regCaptchaField.hidden = false
-      dom.regCaptchaImage.src = payload.captcha
-      dom.regCaptchaImage.dataset.uuid = payload.uuid
-      dom.regCaptcha.value = ''
-    } else {
-      dom.regCaptchaField.hidden = true
-    }
-  } catch {
-    dom.regCaptchaField.hidden = true
-  }
-}
-
 function openRegisterModal() {
   hideModal(dom.loginModal)
   dom.regUsername.value = ''
@@ -608,11 +681,10 @@ function openRegisterModal() {
   dom.regConfirm.value = ''
   dom.regPhone.value = ''
   dom.regNickname.value = ''
-  dom.regCaptcha.value = ''
+  dom.regSmsCode.value = ''
   dom.regError.textContent = ''
   showModal(dom.registerModal)
   dom.regUsername.focus()
-  refreshRegisterCaptcha()
 }
 
 async function handleRegister() {
@@ -621,7 +693,7 @@ async function handleRegister() {
   const confirmPassword = dom.regConfirm.value
   const phone = dom.regPhone.value.trim()
   const nickname = dom.regNickname.value.trim()
-  const captcha = dom.regCaptcha.value.trim()
+  const smsCode = dom.regSmsCode.value.trim()
   dom.regError.textContent = ''
 
   if (!/^[a-zA-Z][a-zA-Z0-9]{2,19}$/.test(username)) {
@@ -640,8 +712,8 @@ async function handleRegister() {
     dom.regError.textContent = '请输入正确的手机号'
     return
   }
-  if (state.registerCaptcha?.enabled && !captcha) {
-    dom.regError.textContent = '请输入验证码'
+  if (!/^\d{6}$/.test(smsCode)) {
+    dom.regError.textContent = '请输入 6 位短信验证码'
     return
   }
 
@@ -652,8 +724,7 @@ async function handleRegister() {
       password,
       phone,
       nickname: nickname || undefined,
-      captcha,
-      uuid: state.registerCaptcha?.uuid ?? '',
+      smsCode,
     })
     state.user = user
     hideModal(dom.registerModal)
@@ -663,7 +734,6 @@ async function handleRegister() {
     renderAll()
   } catch (error) {
     dom.regError.textContent = normalizeError(error)
-    await refreshRegisterCaptcha()
   } finally {
     dom.regSubmit.disabled = false
   }
@@ -769,7 +839,15 @@ async function bootstrap() {
     event.preventDefault()
     openRegisterModal()
   })
-  dom.regCaptchaImage.addEventListener('click', refreshRegisterCaptcha)
+  dom.forgotLink.addEventListener('click', (event) => {
+    event.preventDefault()
+    window.open(`${state.siteUrl}/reset-password`, '_blank')
+  })
+  for (const button of document.querySelectorAll('[data-login-mode]')) {
+    button.addEventListener('click', () => setLoginMode(button.dataset.loginMode))
+  }
+  dom.smsSendBtn.addEventListener('click', () => sendSms('login'))
+  dom.regSmsSendBtn.addEventListener('click', () => sendSms('register'))
   dom.regSubmit.addEventListener('click', handleRegister)
   dom.adCopyBtn.addEventListener('click', async () => {
     await window.desktop.copy(state.adContact)
@@ -807,7 +885,13 @@ async function bootstrap() {
     })
   }
 
-  for (const input of [dom.regUsername, dom.regPassword, dom.regConfirm, dom.regPhone, dom.regNickname, dom.regCaptcha]) {
+  for (const input of [dom.smsPhone, dom.smsCode]) {
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') handleSmsLogin()
+    })
+  }
+
+  for (const input of [dom.regUsername, dom.regPassword, dom.regConfirm, dom.regPhone, dom.regNickname, dom.regSmsCode]) {
     input.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') handleRegister()
     })

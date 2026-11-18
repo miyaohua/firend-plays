@@ -20,6 +20,12 @@ export const RouterConstant = {
   /** 注册页路由名称 */
   SITE_REGISTER_NAME: 'SiteRegister',
 
+  /** 重置密码页路由地址 */
+  SITE_RESET_URL: '/reset-password',
+
+  /** 重置密码页路由名称 */
+  SITE_RESET_NAME: 'SiteResetPassword',
+
   /** 后台布局容器路径：让出根路径给官网，仅作为动态路由的挂载点，不会被直接访问 */
   LAYOUT_CONTAINER_URL: '/shell',
 

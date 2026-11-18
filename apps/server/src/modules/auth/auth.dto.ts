@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, Length, Matches } from 'class-validator'
+import { IsIn, IsNotEmpty, IsOptional, IsString, Length, Matches } from 'class-validator'
 
 export class LoginDto {
   @IsNotEmpty({ message: '参数 $property  不能为空' })
@@ -44,11 +44,43 @@ export class RegisterDto {
   @Length(1, 20, { message: '昵称长度不能超过 20 个字符' })
   nickname: string
 
-  @IsOptional()
-  @IsString()
-  captcha: string
+  @IsNotEmpty({ message: '短信验证码不能为空' })
+  @Matches(/^\d{6}$/, { message: '短信验证码为 6 位数字' })
+  smsCode: string
+}
 
-  @IsOptional()
-  @IsString()
-  uuid: string
+/** 发送短信验证码 */
+export class SmsSendDto {
+  @IsIn(['register', 'login', 'reset'], { message: '验证码场景不合法' })
+  scene: 'register' | 'login' | 'reset'
+
+  @IsNotEmpty({ message: '手机号不能为空' })
+  @Matches(/^1[3-9]\d{9}$/, { message: '请输入正确的手机号' })
+  phone: string
+}
+
+/** 短信验证码登录 */
+export class SmsLoginDto {
+  @IsNotEmpty({ message: '手机号不能为空' })
+  @Matches(/^1[3-9]\d{9}$/, { message: '请输入正确的手机号' })
+  phone: string
+
+  @IsNotEmpty({ message: '短信验证码不能为空' })
+  @Matches(/^\d{6}$/, { message: '短信验证码为 6 位数字' })
+  code: string
+}
+
+/** 通过短信验证码重置密码 */
+export class ResetPasswordDto {
+  @IsNotEmpty({ message: '手机号不能为空' })
+  @Matches(/^1[3-9]\d{9}$/, { message: '请输入正确的手机号' })
+  phone: string
+
+  @IsNotEmpty({ message: '短信验证码不能为空' })
+  @Matches(/^\d{6}$/, { message: '短信验证码为 6 位数字' })
+  code: string
+
+  @IsNotEmpty({ message: '新密码不能为空' })
+  @Matches(/^(?=.*[A-Za-z])(?=.*\d).{6,20}$/, { message: '密码需 6-20 位且同时包含字母与数字' })
+  password: string
 }

@@ -31,10 +31,8 @@ export interface RegisterParams {
   phone: string
   /** 昵称（可选） */
   nickname?: string
-  /** 验证码 */
-  captcha: string
-  /** 验证码唯一标识 */
-  uuid: string
+  /** 短信验证码 */
+  smsCode: string
 }
 
 /** 登录响应数据 */
@@ -58,4 +56,32 @@ export interface CurrentUserInfo {
   user: SysUser
   roles: string[]
   permissions: string[]
+}
+
+/** 短信验证码场景 */
+export type SmsScene = 'register' | 'login' | 'reset'
+
+/** 发送短信验证码参数 */
+export interface SmsSendParams {
+  scene: SmsScene
+  phone: string
+}
+
+/** 发送短信验证码结果（Mock 模式会返回验证码，便于本地联调） */
+export interface SmsSendResult {
+  mock: boolean
+  mockCode?: string
+}
+
+/** 短信验证码登录参数 */
+export interface SmsLoginParams {
+  phone: string
+  code: string
+}
+
+/** 短信验证码重置密码参数 */
+export interface ResetPasswordParams {
+  phone: string
+  code: string
+  password: string
 }

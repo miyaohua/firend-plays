@@ -671,3 +671,49 @@ body {
   color: #2563eb;
   text-decoration: none;
 }
+
+/* 登录方式切换 */
+.login-mode {
+  display: flex;
+  gap: 4px;
+  margin: -6px 0 18px;
+  padding: 4px;
+  background: #f3f4f6;
+  border-radius: 999px;
+}
+
+.login-mode__item {
+  flex: 1;
+  padding: 7px 0;
+  font-size: 13px;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.login-mode__item.is-active {
+  color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+/* 短信验证码行 */
+.sms-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.sms-row .field__input {
+  flex: 1;
+}
+
+.button--sms {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  font-size: 12px;
+  white-space: nowrap;
+}

@@ -7,9 +7,10 @@ import { MenuModule } from '../system/menu/menu.module'
 import { RoleModule } from '../system/role/role.module'
 import { LogModule } from '../monitor/log/log.module'
 import { ConfigModule } from '../system/config/config.module'
+import { SmsModule } from '../common/sms/sms.module'
 
 @Module({
-  imports: [UserModule, MenuModule, RoleModule, LogModule, ConfigModule],
+  imports: [UserModule, MenuModule, RoleModule, LogModule, ConfigModule, SmsModule],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
 })

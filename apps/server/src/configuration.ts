@@ -42,5 +42,18 @@ export const configuration = () => {
       expiresIn: toInteger(process.env.JWT_EXPIRES_IN, 1800),
       refreshExpiresIn: toInteger(process.env.JWT_REFRESH_EXPIRES_IN, 604800),
     },
+
+    sms: {
+      // 本地无阿里云密钥时置 true，验证码只写日志并随响应返回（仅限开发环境）
+      mock: toBoolean(process.env.SMS_MOCK, false),
+      accessKeyId: process.env.ALIYUN_SMS_ACCESS_KEY_ID || '',
+      accessKeySecret: process.env.ALIYUN_SMS_ACCESS_KEY_SECRET || '',
+      signName: process.env.ALIYUN_SMS_SIGN_NAME || '',
+      regionId: process.env.ALIYUN_SMS_REGION_ID || 'cn-hangzhou',
+      endpoint: process.env.ALIYUN_SMS_ENDPOINT || 'dysmsapi.aliyuncs.com',
+      templateRegister: process.env.ALIYUN_SMS_TEMPLATE_REGISTER || 'SMS_505150173',
+      templateLogin: process.env.ALIYUN_SMS_TEMPLATE_LOGIN || 'SMS_504745513',
+      templateReset: process.env.ALIYUN_SMS_TEMPLATE_RESET || 'CODESMS_504865505',
+    },
   }
 }

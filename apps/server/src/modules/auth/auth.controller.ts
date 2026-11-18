@@ -1,4 +1,4 @@
-import { LoginDto, RefreshTokenDto, RegisterDto } from './auth.dto'
+import { LoginDto, RefreshTokenDto, RegisterDto, ResetPasswordDto, SmsLoginDto, SmsSendDto } from './auth.dto'
 import { AuthService } from './auth.service'
 import { Body, Controller, Get, Post, Req, Headers } from '@nestjs/common'
 import { CommonConstant, CurrentUser, Public, RepeatSubmit, SkipThrottle } from '@/common'
@@ -21,6 +21,29 @@ export class AuthController {
   @Post('login')
   public login(@Body() loginDto: LoginDto, @Req() request: ExpressRequest) {
     return this.authService.login(loginDto, request)
+  }
+
+  /** 发送短信验证码（公开，注册 / 登录 / 重置密码） */
+  @Public()
+  @Post('sms/send')
+  public sendSms(@Body() smsSendDto: SmsSendDto) {
+    return this.authService.sendSms(smsSendDto.scene, smsSendDto.phone)
+  }
+
+  /** 短信验证码登录（公开） */
+  @Public()
+  @RepeatSubmit()
+  @Post('login/sms')
+  public loginBySms(@Body() smsLoginDto: SmsLoginDto, @Req() request: ExpressRequest) {
+    return this.authService.loginBySms(smsLoginDto, request)
+  }
+
+  /** 短信验证码重置密码（公开） */
+  @Public()
+  @RepeatSubmit()
+  @Post('resetPassword')
+  public resetPassword(@Body() resetPasswordDto: ResetPasswordDto, @Req() request: ExpressRequest) {
+    return this.authService.resetPassword(resetPasswordDto, request)
   }
 
   /** 自助注册（公开，验证码按系统参数开关校验） */

@@ -11,6 +11,7 @@ export const STATIC_ROUTE_LIST: RouteRecordRaw[] = [
     children: [
       { name: RouterConstant.SITE_PAGE_NAME, path: '', component: () => import('@/views/site/home.vue'), meta: { title: '首页', public: true } },
       { name: RouterConstant.SITE_REGISTER_NAME, path: 'register', component: () => import('@/views/site/register.vue'), meta: { title: '注册', public: true } },
+      { name: RouterConstant.SITE_RESET_NAME, path: 'reset-password', component: () => import('@/views/site/reset-password.vue'), meta: { title: '重置密码', public: true } },
     ],
   },
 

@@ -63,23 +63,45 @@
       <div class="modal__panel">
         <h2 class="modal__title">登录</h2>
 
-        <label class="field">
-          <span class="field__label">账号</span>
-          <input id="loginUsername" class="field__input" type="text" autocomplete="username" placeholder="请输入账号" />
-        </label>
+        <div class="login-mode">
+          <button type="button" class="login-mode__item is-active" data-login-mode="password">账号登录</button>
+          <button type="button" class="login-mode__item" data-login-mode="sms">短信登录</button>
+        </div>
 
-        <label class="field">
-          <span class="field__label">密码</span>
-          <input id="loginPassword" class="field__input" type="password" autocomplete="current-password" placeholder="请输入密码" />
-        </label>
+        <div id="passwordLoginPanel">
+          <label class="field">
+            <span class="field__label">账号</span>
+            <input id="loginUsername" class="field__input" type="text" autocomplete="username" placeholder="请输入账号" />
+          </label>
 
-        <label id="captchaField" class="field">
-          <span class="field__label">验证码</span>
-          <div class="captcha">
-            <input id="loginCaptcha" class="field__input" type="text" placeholder="请输入验证码" maxlength="6" />
-            <img id="captchaImage" class="captcha__image" alt="验证码" title="点击刷新" />
-          </div>
-        </label>
+          <label class="field">
+            <span class="field__label">密码</span>
+            <input id="loginPassword" class="field__input" type="password" autocomplete="current-password" placeholder="请输入密码" />
+          </label>
+
+          <label id="captchaField" class="field">
+            <span class="field__label">验证码</span>
+            <div class="captcha">
+              <input id="loginCaptcha" class="field__input" type="text" placeholder="请输入验证码" maxlength="6" />
+              <img id="captchaImage" class="captcha__image" alt="验证码" title="点击刷新" />
+            </div>
+          </label>
+        </div>
+
+        <div id="smsLoginPanel" hidden>
+          <label class="field">
+            <span class="field__label">手机号</span>
+            <input id="smsPhone" class="field__input" type="text" maxlength="11" placeholder="请输入手机号" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">短信验证码</span>
+            <div class="sms-row">
+              <input id="smsCode" class="field__input" type="text" maxlength="6" placeholder="请输入短信验证码" />
+              <button id="smsSendBtn" class="button button--ghost button--sms" type="button">发送验证码</button>
+            </div>
+          </label>
+        </div>
 
         <p id="loginError" class="form-error"></p>
 
@@ -88,7 +110,9 @@
           <button id="loginSubmit" class="button button--primary" type="button">登录</button>
         </div>
 
-        <p class="login-register">还没有账号？<a href="#" id="registerLink">立即注册</a></p>
+        <p class="login-register">
+          还没有账号？<a href="#" id="registerLink">立即注册</a> · <a href="#" id="forgotLink">忘记密码</a>
+        </p>
       </div>
     </div>
 
@@ -123,11 +147,11 @@
           <input id="regNickname" class="field__input" type="text" maxlength="20" placeholder="不填默认使用账号" />
         </label>
 
-        <label id="regCaptchaField" class="field">
-          <span class="field__label">验证码</span>
-          <div class="captcha">
-            <input id="regCaptcha" class="field__input" type="text" placeholder="请输入验证码" maxlength="6" />
-            <img id="regCaptchaImage" class="captcha__image" alt="验证码" title="点击刷新" />
+        <label class="field">
+          <span class="field__label">短信验证码</span>
+          <div class="sms-row">
+            <input id="regSmsCode" class="field__input" type="text" maxlength="6" placeholder="请输入短信验证码" />
+            <button id="regSmsSendBtn" class="button button--ghost button--sms" type="button">发送验证码</button>
           </div>
         </label>
 

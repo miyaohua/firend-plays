@@ -100,6 +100,20 @@ pnpm dev:admin    # 前端 http://localhost:5173（开发代理已指向 3000）
 
 启动完成后使用默认账号登录：**admin / 123456**（超级管理员，建议登录后修改密码）。
 
+### 短信验证码（阿里云）
+
+注册、短信登录与重置密码均使用阿里云短信，需在 `apps/server/.env` 中配置：
+
+| 变量 | 说明 |
+|---|---|
+| `ALIYUN_SMS_ACCESS_KEY_ID` / `ALIYUN_SMS_ACCESS_KEY_SECRET` | 具备短信发送权限的 AccessKey |
+| `ALIYUN_SMS_SIGN_NAME` | 已审核通过的短信签名 |
+| `ALIYUN_SMS_TEMPLATE_REGISTER` | 注册模板，默认 `SMS_505150173` |
+| `ALIYUN_SMS_TEMPLATE_LOGIN` | 登录模板，默认 `SMS_504745513` |
+| `ALIYUN_SMS_TEMPLATE_RESET` | 重置密码模板，默认 `CODESMS_504865505` |
+
+本地未申请密钥时可设置 `SMS_MOCK=true`：验证码不会真实发送，会写入后端日志并在发送接口响应中返回 `mockCode`（仅限开发环境）。
+
 ## 🗄️ 数据库教程
 
 除快速开始中的 `pnpm --filter server db:init` 外，以下命令均在 `apps/server` 目录下执行，连接信息由 `apps/server/.env` 提供。

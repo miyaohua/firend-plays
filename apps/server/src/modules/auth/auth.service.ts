@@ -1,4 +1,4 @@
-import { LoginDto, RegisterDto } from './auth.dto'
+import { LoginDto, RegisterDto, ResetPasswordDto, SmsLoginDto } from './auth.dto'
 import type { AuthType } from '@/types'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
@@ -11,8 +11,9 @@ import { MenuService } from '../system/menu/menu.service'
 import { RoleService } from '../system/role/role.service'
 import { ConfigService as SysConfigService } from '../system/config/config.service'
 import { HttpStatus, Injectable, Logger } from '@nestjs/common'
-import { verifyPassword, formatTime, randomUUID, getRequestIp } from '@/utils'
+import { verifyPassword, encryptPassword, formatTime, randomUUID, getRequestIp } from '@/utils'
 import { CommonConstant, BusinessException, RedisConstant, ConfigConstant, RbacConstant } from '@/common'
+import { SmsService } from '../common/sms/sms.service'
 
 @Injectable()
 export class AuthService {
@@ -29,6 +30,7 @@ export class AuthService {
     private readonly captchaService: CaptchaService,
     private readonly loginLockService: LoginLockService,
     private readonly sysConfigService: SysConfigService,
+    private readonly smsService: SmsService,
   ) {}
 
   /** 获取验证码（实时读取参数开关，缺失默认开启；关闭时不生成图片，仅返回 enabled 标识） */
@@ -72,13 +74,12 @@ export class AuthService {
     }
   }
 
-  /** 自助注册：校验开关与验证码后建号，并直接签发令牌实现自动登录 */
+  /** 自助注册：校验开关与短信验证码后建号，并直接签发令牌实现自动登录 */
   public async register(registerDto: RegisterDto, request: ExpressRequest) {
     const registerEnabled = await this.sysConfigService.getBooleanConfig(CommonConstant.REGISTER_ENABLED_CONFIG_KEY, true)
     if (!registerEnabled) throw new BusinessException('当前暂未开放注册')
 
-    const captchaEnabled = await this.sysConfigService.getBooleanConfig(CommonConstant.CAPTCHA_ENABLED_CONFIG_KEY, true)
-    if (captchaEnabled) await this.captchaService.validate(registerDto.uuid, registerDto.captcha)
+    await this.smsService.verify('register', registerDto.phone, registerDto.smsCode)
 
     const user = await this.userService.registerUser(registerDto)
     const { accessTokenKey, accessToken, refreshToken } = await this.generateTokenPair(user)
@@ -87,6 +88,52 @@ export class AuthService {
     this.logService.createLoginlog(request, '注册成功', user.id, accessTokenKey)
 
     return { accessToken, refreshToken, expiresIn: this.expiresIn }
+  }
+
+  /** 发送短信验证码（注册 / 登录 / 重置密码） */
+  public async sendSms(scene: 'register' | 'login' | 'reset', phone: string) {
+    return this.smsService.send(scene, phone)
+  }
+
+  /** 短信验证码登录：手机号 + 验证码，成功即签发令牌 */
+  public async loginBySms(loginDto: SmsLoginDto, request: ExpressRequest) {
+    const { phone, code } = loginDto
+    await this.smsService.verify('login', phone, code)
+
+    const user = await this.userService.getRepository().findOneBy({ phone, status: CommonConstant.STATUS_NORMAL })
+    if (!user) throw new BusinessException('手机号或验证码错误')
+
+    const { accessTokenKey, accessToken, refreshToken } = await this.generateTokenPair(user)
+    this.userService.getRepository().update(user.id, { loginTime: formatTime() })
+    this.logService.createLoginlog(request, '短信登录成功', user.id, accessTokenKey)
+
+    return { accessToken, refreshToken, expiresIn: this.expiresIn }
+  }
+
+  /** 通过短信验证码重置密码：重置后该账号所有在线会话立即失效 */
+  public async resetPassword(resetDto: ResetPasswordDto, request: ExpressRequest) {
+    const { phone, code, password } = resetDto
+    await this.smsService.verify('reset', phone, code)
+
+    const user = await this.userService.getRepository().findOneBy({ phone, status: CommonConstant.STATUS_NORMAL })
+    if (!user) throw new BusinessException('手机号或验证码错误')
+
+    user.password = await encryptPassword(password)
+    await this.userService.getRepository().save(user)
+    await this.revokeUserSessions(user.id)
+    await this.loginLockService.clearFailCount(user.username, getRequestIp(request))
+    this.logService.createLoginlog(request, '重置密码成功', user.id)
+
+    return '密码重置成功，请使用新密码登录'
+  }
+
+  /** 清空指定用户的全部令牌与在线记录（改密后强制下线） */
+  private async revokeUserSessions(userId: string): Promise<void> {
+    const patterns = [`${RedisConstant.ACCESS_TOKEN_KEY}:${userId}:*`, `${RedisConstant.REFRESH_TOKEN_KEY}:${userId}:*`, `${RedisConstant.ADMIN_USER_ONLINE_KEY}:${userId}:*`]
+    for (const pattern of patterns) {
+      const keys = await this.redisService.scan(pattern)
+      if (keys.length) await this.redisService.del(...keys)
+    }
   }
 
   /** 获取登录用户信息（每次调用都重建角色/部门缓存与角色级权限缓存，权限变更刷新即生效） */

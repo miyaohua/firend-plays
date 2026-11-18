@@ -26,10 +26,10 @@
             <el-input v-model="form.nickname" maxlength="20" placeholder="不填默认使用账号" />
           </el-form-item>
 
-          <el-form-item v-if="captchaEnabled" label="验证码" prop="captcha">
-            <div class="register__captcha">
-              <el-input v-model="form.captcha" maxlength="6" placeholder="请输入验证码" />
-              <img :src="captchaImage" class="register__captcha-image" alt="验证码" title="点击刷新" @click="loadCaptcha" />
+          <el-form-item label="短信验证码" prop="smsCode">
+            <div class="register__sms">
+              <el-input v-model="form.smsCode" maxlength="6" placeholder="请输入短信验证码" />
+              <el-button :disabled="countdown > 0" @click="handleSendSms">{{ countdown > 0 ? `${countdown}s` : '发送验证码' }}</el-button>
             </div>
           </el-form-item>
 
@@ -57,7 +57,7 @@
 defineOptions({ name: 'SiteRegister' })
 import type { FormInstance, FormRules } from 'element-plus'
 import { AuthRequest } from '@/api/auth.request'
-import { getAccessToken, setTokenPair } from '@/utils'
+import { getAccessToken, setTokenPair, TipModal } from '@/utils'
 import { RouterConstant } from '@/router/router.constant'
 import { SITE_NAME, openDownloadPage } from './constants'
 
@@ -67,9 +67,8 @@ const formRef = useTemplateRef<FormInstance>('formRef')
 const success = ref(false)
 const submitting = ref(false)
 const errorMessage = ref('')
-const captchaEnabled = ref(false)
-const captchaImage = ref('')
-const captchaUuid = ref('')
+const countdown = ref(0)
+let countdownTimer: ReturnType<typeof setInterval> | null = null
 
 const form = reactive({
   username: '',
@@ -77,7 +76,7 @@ const form = reactive({
   confirmPassword: '',
   phone: '',
   nickname: '',
-  captcha: '',
+  smsCode: '',
 })
 
 const rules: FormRules = {
@@ -104,18 +103,31 @@ const rules: FormRules = {
     { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
   ],
   nickname: [{ max: 20, message: '昵称不能超过 20 个字符', trigger: 'blur' }],
-  captcha: [{ required: true, message: '请输入验证码', trigger: 'blur' }],
+  smsCode: [
+    { required: true, message: '请输入短信验证码', trigger: 'blur' },
+    { pattern: /^\d{6}$/, message: '短信验证码为 6 位数字', trigger: 'blur' },
+  ],
 }
 
-async function loadCaptcha() {
+async function handleSendSms() {
+  if (!/^1[3-9]\d{9}$/.test(form.phone)) {
+    errorMessage.value = '请先填写正确的手机号'
+    return
+  }
+  errorMessage.value = ''
   try {
-    const data = await AuthRequest.getCaptcha()
-    captchaEnabled.value = data.enabled
-    captchaImage.value = data.captcha
-    captchaUuid.value = data.uuid
-    form.captcha = ''
-  } catch {
-    captchaEnabled.value = false
+    const result = await AuthRequest.sendSms({ scene: 'register', phone: form.phone })
+    TipModal.msgSuccess(result.mockCode ? `验证码已发送（本地模拟：${result.mockCode}）` : '验证码已发送，请注意查收')
+    countdown.value = 60
+    countdownTimer = setInterval(() => {
+      countdown.value -= 1
+      if (countdown.value <= 0) {
+        if (countdownTimer) clearInterval(countdownTimer)
+        countdownTimer = null
+      }
+    }, 1000)
+  } catch (error: any) {
+    errorMessage.value = error?.message || '验证码发送失败'
   }
 }
 
@@ -132,25 +144,23 @@ async function handleSubmit() {
       password: form.password,
       phone: form.phone,
       nickname: form.nickname || undefined,
-      captcha: form.captcha,
-      uuid: captchaUuid.value,
+      smsCode: form.smsCode,
     })
     setTokenPair(result)
     success.value = true
   } catch (error: any) {
     errorMessage.value = error?.message || '注册失败，请稍后重试'
-    await loadCaptcha()
   } finally {
     submitting.value = false
   }
 }
 
-onMounted(async () => {
-  if (getAccessToken()) {
-    success.value = true
-    return
-  }
-  await loadCaptcha()
+onMounted(() => {
+  if (getAccessToken()) success.value = true
+})
+
+onUnmounted(() => {
+  if (countdownTimer) clearInterval(countdownTimer)
 })
 </script>
 
@@ -191,18 +201,10 @@ onMounted(async () => {
     }
   }
 
-  &__captcha {
+  &__sms {
     display: flex;
     gap: 10px;
     width: 100%;
-
-    &-image {
-      width: 110px;
-      height: 32px;
-      cursor: pointer;
-      border: 1px solid #e5e7eb;
-      border-radius: 6px;
-    }
   }
 
   &__error {

@@ -22,6 +22,21 @@ export abstract class AuthRequest {
     return request.post(`/auth/refreshToken`, data)
   }
 
+  /** 发送短信验证码 */
+  static sendSms(data: Auth.SmsSendParams): Promise<Auth.SmsSendResult> {
+    return request.post(`/auth/sms/send`, data)
+  }
+
+  /** 短信验证码登录 */
+  static loginBySms(data: Auth.SmsLoginParams): Promise<Auth.LoginResult> {
+    return request.post(`/auth/login/sms`, data)
+  }
+
+  /** 短信验证码重置密码 */
+  static resetPassword(data: Auth.ResetPasswordParams): Promise<string> {
+    return request.post(`/auth/resetPassword`, data)
+  }
+
   /** 获取登录者信息 */
   static getInfo(): Promise<Auth.CurrentUserInfo> {
     return request.get(`/auth/getInfo`)
