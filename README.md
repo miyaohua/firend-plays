@@ -110,9 +110,13 @@ pnpm dev:admin    # 前端 http://localhost:5173（开发代理已指向 3000）
 | `ALIYUN_SMS_SIGN_NAME` | 已审核通过的短信签名 |
 | `ALIYUN_SMS_TEMPLATE_REGISTER` | 注册模板，默认 `SMS_505150173` |
 | `ALIYUN_SMS_TEMPLATE_LOGIN` | 登录模板，默认 `SMS_504745513` |
-| `ALIYUN_SMS_TEMPLATE_RESET` | 重置密码模板，默认 `CODESMS_504865505` |
+| `ALIYUN_SMS_TEMPLATE_RESET` | 重置密码模板，默认 `SMS_504865505` |
 
-本地未申请密钥时可设置 `SMS_MOCK=true`：验证码不会真实发送，会写入后端日志并在发送接口响应中返回 `mockCode`（仅限开发环境）。
+> AccessKey 建议写在 `apps/server/.env.local`（已被 `.gitignore` 忽略），不要提交到仓库。
+>
+> 本地未申请密钥时可设置 `SMS_MOCK=true`：验证码不会真实发送，会写入后端日志并在发送接口响应中返回 `mockCode`（仅限开发环境）。
+>
+> 新账号默认有「1 条/分钟」的阿里云账号级流控，上线前建议在短信控制台申请提额。
 
 ## 🗄️ 数据库教程
 

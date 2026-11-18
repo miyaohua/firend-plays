@@ -53,7 +53,7 @@ export const configuration = () => {
       endpoint: process.env.ALIYUN_SMS_ENDPOINT || 'dysmsapi.aliyuncs.com',
       templateRegister: process.env.ALIYUN_SMS_TEMPLATE_REGISTER || 'SMS_505150173',
       templateLogin: process.env.ALIYUN_SMS_TEMPLATE_LOGIN || 'SMS_504745513',
-      templateReset: process.env.ALIYUN_SMS_TEMPLATE_RESET || 'CODESMS_504865505',
+      templateReset: process.env.ALIYUN_SMS_TEMPLATE_RESET || 'SMS_504865505',
     },
   }
 }
