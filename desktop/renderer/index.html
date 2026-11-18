@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'" />
+    <title>精选改枪码</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand">
+        <img class="brand__logo" src="./assets/favicon.svg" alt="logo" draggable="false" />
+        <span class="brand__title">精选改枪码</span>
+      </div>
+
+      <div class="header-actions">
+        <span id="status" class="status status--idle"></span>
+        <button id="refresh" class="button button--ghost" type="button">刷新</button>
+        <button id="loginBtn" class="button button--primary" type="button">登录</button>
+        <div id="userBox" class="user-box" hidden>
+          <span id="userName" class="user-name"></span>
+          <button id="submitBtn" class="button button--primary" type="button">提交改枪码</button>
+          <button id="logoutBtn" class="button button--ghost" type="button">退出</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <aside class="types">
+        <p class="types__title">武器分类</p>
+        <div id="typeList" class="types__list"></div>
+      </aside>
+
+      <section class="content">
+        <div id="viewSwitch" class="view-switch" hidden>
+          <button type="button" class="view-switch__item is-active" data-view="featured">精选改枪码</button>
+          <button type="button" class="view-switch__item" data-view="mine">我的提交</button>
+        </div>
+
+        <div id="gunList" class="guns"></div>
+        <div id="codeList" class="list"></div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span id="apiBase">接口：-</span>
+      <span id="version"></span>
+    </footer>
+
+    <!-- 登录弹窗 -->
+    <div id="loginModal" class="modal" hidden>
+      <div class="modal__mask" data-close="loginModal"></div>
+      <div class="modal__panel">
+        <h2 class="modal__title">登录</h2>
+
+        <label class="field">
+          <span class="field__label">账号</span>
+          <input id="loginUsername" class="field__input" type="text" autocomplete="username" placeholder="请输入账号" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">密码</span>
+          <input id="loginPassword" class="field__input" type="password" autocomplete="current-password" placeholder="请输入密码" />
+        </label>
+
+        <label id="captchaField" class="field">
+          <span class="field__label">验证码</span>
+          <div class="captcha">
+            <input id="loginCaptcha" class="field__input" type="text" placeholder="请输入验证码" maxlength="6" />
+            <img id="captchaImage" class="captcha__image" alt="验证码" title="点击刷新" />
+          </div>
+        </label>
+
+        <p id="loginError" class="form-error"></p>
+
+        <div class="modal__actions">
+          <button class="button button--ghost" type="button" data-close="loginModal">取消</button>
+          <button id="loginSubmit" class="button button--primary" type="button">登录</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 提交改枪码弹窗 -->
+    <div id="submitModal" class="modal" hidden>
+      <div class="modal__mask" data-close="submitModal"></div>
+      <div class="modal__panel modal__panel--wide">
+        <h2 class="modal__title">提交改枪码</h2>
+
+        <label class="field">
+          <span class="field__label">武器分类</span>
+          <select id="submitType" class="field__input"></select>
+        </label>
+
+        <label class="field">
+          <span class="field__label">枪械</span>
+          <select id="submitGun" class="field__input"></select>
+        </label>
+
+        <label class="field">
+          <span class="field__label">改枪码</span>
+          <textarea id="submitCode" class="field__input field__input--area" rows="4" maxlength="500" placeholder="粘贴或输入改枪码"></textarea>
+        </label>
+
+        <label class="field">
+          <span class="field__label">备注</span>
+          <input id="submitRemark" class="field__input" type="text" maxlength="200" placeholder="可选，例如适用模式、版本" />
+        </label>
+
+        <p id="submitError" class="form-error"></p>
+
+        <div class="modal__actions">
+          <button class="button button--ghost" type="button" data-close="submitModal">取消</button>
+          <button id="submitConfirm" class="button button--primary" type="button">提交</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

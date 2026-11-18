@@ -1,0 +1,509 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  color: #1f2937;
+  background: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- 顶栏 ---------- */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 60px;
+  padding: 0 20px;
+  border-bottom: 1px solid #eef0f4;
+  background: #ffffff;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand__logo {
+  width: 26px;
+  height: 26px;
+}
+
+.brand__title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d1d5db;
+}
+
+.status--ok {
+  background: #10b981;
+}
+
+.status--error {
+  background: #ef4444;
+}
+
+.button {
+  padding: 6px 14px;
+  font-size: 13px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.button--ghost {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.button--ghost:hover {
+  background: rgba(37, 99, 235, 0.16);
+}
+
+.button--primary {
+  color: #ffffff;
+  background: #2563eb;
+}
+
+.button--primary:hover {
+  background: #1d4ed8;
+}
+
+/* ---------- 主体 ---------- */
+.app-main {
+  display: flex;
+  flex: 1;
+  gap: 20px;
+  min-height: 0;
+  padding: 20px;
+}
+
+.types {
+  flex-shrink: 0;
+  width: 190px;
+  padding: 14px;
+  overflow-y: auto;
+  border: 1px solid #eef0f4;
+  border-radius: 12px;
+}
+
+.types__title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.types__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.type-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.type-item:hover {
+  background: #f3f4f6;
+}
+
+.type-item.is-active {
+  color: #ffffff;
+  background: #2563eb;
+}
+
+.type-item.is-empty {
+  color: #6b7280;
+}
+
+.type-item.is-active .type-item__count {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.type-item__count {
+  min-width: 22px;
+  padding: 1px 7px;
+  font-size: 12px;
+  text-align: center;
+  color: #6b7280;
+  background: #f3f4f6;
+  border-radius: 999px;
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+}
+
+.guns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.gun-item {
+  padding: 7px 14px;
+  font-size: 13px;
+  color: #4b5563;
+  background: #f3f4f6;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.gun-item:hover {
+  background: #e5e7eb;
+}
+
+.gun-item.is-active {
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+  border-color: rgba(37, 99, 235, 0.4);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.card {
+  padding: 18px 20px;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.card__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card__gun {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.tag {
+  padding: 1px 8px;
+  font-size: 12px;
+  color: #ffffff;
+  background: #f59e0b;
+  border-radius: 4px;
+}
+
+.card__copy {
+  padding: 5px 14px;
+  font-size: 12px;
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.08);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.card__copy:hover {
+  background: rgba(37, 99, 235, 0.16);
+}
+
+.card__code {
+  display: block;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  font-family: 'SFMono-Regular', 'JetBrains Mono', Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: #1f2937;
+  background: #f8fafc;
+  border-radius: 8px;
+  word-break: break-all;
+}
+
+.card__remark {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px dashed #eef0f4;
+}
+
+.card__remark-label {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 21px;
+  color: #9ca3af;
+}
+
+.card__remark-text {
+  font-size: 13px;
+  line-height: 21px;
+  color: #4b5563;
+  word-break: break-all;
+}
+
+.card__remark-text.is-empty {
+  color: #c0c4cc;
+}
+
+/* ---------- 状态提示 ---------- */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 72px 24px;
+  color: #9ca3af;
+}
+
+.placeholder__title {
+  font-size: 15px;
+  color: #6b7280;
+}
+
+.placeholder__desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* ---------- 底栏 ---------- */
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  padding: 8px 20px;
+  font-size: 12px;
+  color: #9ca3af;
+  border-top: 1px solid #eef0f4;
+}
+
+/* ---------- 轻提示 ---------- */
+.toast {
+  position: fixed;
+  right: 24px;
+  bottom: 52px;
+  left: auto;
+  padding: 8px 18px;
+  font-size: 13px;
+  color: #065f46;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ---------- 视图切换 ---------- */
+.view-switch {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background: #f3f4f6;
+  border-radius: 999px;
+}
+
+.view-switch__item {
+  padding: 6px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4b5563;
+  background: transparent;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.view-switch__item:hover {
+  color: #2563eb;
+}
+
+.view-switch__item.is-active {
+  color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+/* ---------- 用户区 ---------- */
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* ---------- 弹窗 ---------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.32);
+}
+
+.modal__panel {
+  position: relative;
+  width: 380px;
+  padding: 22px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+}
+
+.modal__panel--wide {
+  width: 460px;
+}
+
+.modal__title {
+  margin: 0 0 18px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.field__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.field__input {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 13px;
+  color: #1f2937;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field__input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.field__input--area {
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.captcha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.captcha__image {
+  width: 110px;
+  height: 38px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.form-error {
+  min-height: 18px;
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.tag--pending {
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+[hidden] {
+  display: none !important;
+}

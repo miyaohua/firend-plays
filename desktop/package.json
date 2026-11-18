@@ -1,0 +1,43 @@
+{
+  "name": "gun-code-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "精选改枪码桌面客户端（Electron）",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:remote": "DESKTOP_API_BASE=https://example.com/api electron .",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.friendplays.guncode",
+    "productName": "精选改枪码",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.utilities",
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "icon": "build/icon.png"
+  },
+  "author": "friend-plays"
+}
