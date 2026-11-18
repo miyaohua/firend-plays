@@ -3,15 +3,14 @@
     <header class="site-header">
       <div class="site-header__inner">
         <router-link to="/" class="site-brand">
-          <img src="/favicon.svg" alt="logo" class="site-brand__logo" draggable="false" />
-          <span class="site-brand__title">{{ appTitle }}</span>
+          <span class="site-brand__title">{{ SITE_NAME }}</span>
+          <span class="site-brand__subtitle">{{ SITE_SUBTITLE }}</span>
         </router-link>
 
         <nav class="site-nav">
           <router-link to="/" class="site-nav__link" :class="{ 'is-active': isHome }">首页</router-link>
-          <router-link to="/codes" class="site-nav__link" :class="{ 'is-active': isCodes }">精选改枪码</router-link>
-          <router-link :to="{ path: '/', hash: '#how-to' }" class="site-nav__link site-nav__link--anchor">如何提交</router-link>
-          <el-button type="primary" round @mouseenter="prefetchAdmin" @focus="prefetchAdmin" @click="goAdmin">进入后台</el-button>
+          <button type="button" class="site-nav__link site-nav__link--button" @click="openDownloadPage">下载客户端</button>
+          <el-button type="primary" round @click="goAdmin">进入后台</el-button>
         </nav>
       </div>
     </header>
@@ -21,7 +20,7 @@
     </main>
 
     <footer class="site-footer">
-      <p class="site-footer__line">{{ appTitle }} · 玩家改枪码分享社区</p>
+      <p class="site-footer__line">{{ SITE_NAME }} · 玩家改枪码分享社区</p>
       <p class="site-footer__sub">本站为玩家自建社区站点，与游戏官方无关</p>
     </footer>
   </div>
@@ -30,23 +29,15 @@
 <script setup lang="ts">
 defineOptions({ name: 'SiteLayout' })
 import { RouterConstant } from '@/router/router.constant'
+import { SITE_NAME, SITE_SUBTITLE, openDownloadPage } from './constants'
 
 const router = useRouter()
 const route = useRoute()
 
-/** 站点标题，与后台共用同一环境变量 */
-const appTitle = import.meta.env.VITE_APP_TITLE
-
 const isHome = computed(() => route.path === '/')
-const isCodes = computed(() => route.path === RouterConstant.SITE_CODES_URL)
 
 function goAdmin() {
   router.push(RouterConstant.HOME_PAGE_URL)
-}
-
-/** 悬浮/聚焦时预取后台首页 chunk（含图表依赖），点击进入时更快 */
-function prefetchAdmin() {
-  void import('@/views/dashboard/index.vue')
 }
 </script>
 
@@ -64,7 +55,7 @@ function prefetchAdmin() {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid #eef0f4;
 
@@ -81,27 +72,29 @@ function prefetchAdmin() {
 
 .site-brand {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 2px;
   color: inherit;
   text-decoration: none;
 
-  &__logo {
-    width: 28px;
-    height: 28px;
+  &__title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.5px;
   }
 
-  &__title {
-    font-size: 17px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
+  &__subtitle {
+    font-size: 11px;
+    color: #9ca3af;
+    line-height: 1.2;
   }
 }
 
 .site-nav {
   display: flex;
   align-items: center;
-  gap: 26px;
+  gap: 24px;
 
   &__link {
     font-size: 14px;
@@ -112,6 +105,14 @@ function prefetchAdmin() {
     &:hover,
     &.is-active {
       color: #2563eb;
+    }
+
+    &--button {
+      padding: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
     }
   }
 }
@@ -149,10 +150,6 @@ function prefetchAdmin() {
 
   .site-nav__link {
     font-size: 13px;
-
-    &--anchor {
-      display: none;
-    }
   }
 }
 </style>

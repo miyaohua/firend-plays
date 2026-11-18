@@ -6,10 +6,10 @@ export const STATIC_ROUTE_LIST: RouteRecordRaw[] = [
   {
     path: RouterConstant.SITE_PAGE_URL,
     component: () => import('@/views/site/layout.vue'),
-    meta: { public: true },
+    // hidden：官网路由只用于前台页面，不能出现在后台侧边栏
+    meta: { public: true, hidden: true },
     children: [
       { name: RouterConstant.SITE_PAGE_NAME, path: '', component: () => import('@/views/site/home.vue'), meta: { title: '首页', public: true } },
-      { name: RouterConstant.SITE_CODES_NAME, path: 'codes', component: () => import('@/views/site/codes.vue'), meta: { title: '精选改枪码', public: true } },
     ],
   },
 

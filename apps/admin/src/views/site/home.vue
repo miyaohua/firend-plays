@@ -2,13 +2,14 @@
   <div class="home">
     <section class="home-hero">
       <div class="home-hero__inner">
-        <p class="home-hero__badge">三角洲行动 · 玩家改枪码社区</p>
+        <p class="home-hero__badge">{{ SITE_NAME }} · {{ SITE_SUBTITLE }}</p>
         <h1 class="home-hero__title">把每一把枪<br />调成你顺手的样子</h1>
-        <p class="home-hero__desc">汇集社区玩家的改装方案，按「武器分类 → 枪械 → 改枪码」归档，由管理员精选推荐。</p>
+        <p class="home-hero__desc">社区玩家共享的改装方案，按「武器分类 → 枪械 → 改枪码」归档，管理员精选推荐，桌面客户端打开即用。</p>
         <div class="home-hero__actions">
-          <el-button type="primary" size="large" @click="router.push(RouterConstant.SITE_CODES_URL)">浏览精选改枪码</el-button>
-          <el-button size="large" @click="router.push(RouterConstant.HOME_PAGE_URL)">进入后台提交</el-button>
+          <el-button type="primary" size="large" @click="openDownloadPage">下载客户端</el-button>
+          <el-button size="large" @click="router.push(RouterConstant.HOME_PAGE_URL)">进入后台</el-button>
         </div>
+        <p class="home-hero__note">支持 macOS（Apple Silicon），Windows 版本即将上线</p>
       </div>
     </section>
 
@@ -21,43 +22,51 @@
       </div>
     </section>
 
-    <section v-if="featuredPreview.length" id="featured" class="home-section">
-      <div class="home-section__head">
-        <div>
-          <h2 class="home-section__title">精选改枪码</h2>
-          <p class="home-section__desc">管理员从社区投稿中挑出的方案，点开可查看全部并复制。</p>
-        </div>
-        <el-button text type="primary" @click="router.push(RouterConstant.SITE_CODES_URL)">查看全部 →</el-button>
-      </div>
+    <section class="home-section">
+      <h2 class="home-section__title">客户端能做什么</h2>
+      <p class="home-section__desc">一个轻量桌面程序，专注改枪码的浏览、复制与投稿。</p>
 
-      <div class="home-featured">
-        <article v-for="item in featuredPreview" :key="item.id" class="home-featured__card">
-          <p class="home-featured__gun">{{ item.gunLabel }}</p>
-          <code class="home-featured__code">{{ item.code }}</code>
-          <p class="home-featured__meta">{{ item.remark || '社区投稿' }} · 由 {{ item.author }} 提供</p>
+      <div class="home-features">
+        <article v-for="feature in features" :key="feature.title" class="home-feature">
+          <h3 class="home-feature__title">{{ feature.title }}</h3>
+          <p class="home-feature__desc">{{ feature.desc }}</p>
         </article>
       </div>
     </section>
 
-    <section class="home-section home-section--muted">
+    <section v-if="featuredPreview.length" class="home-section home-section--muted">
       <div class="home-section__head">
         <div>
-          <h2 class="home-section__title">按武器分类浏览</h2>
-          <p class="home-section__desc">选择分类进入改枪码库，查看该分类下所有精选方案。</p>
+          <h2 class="home-section__title home-section__title--left">精选改枪码</h2>
+          <p class="home-section__desc home-section__desc--left">管理员从社区投稿中挑出的方案，客户端内可查看全部并一键复制。</p>
         </div>
+        <el-button text type="primary" @click="openDownloadPage">下载客户端查看全部 →</el-button>
       </div>
 
-      <div class="home-types">
-        <router-link v-for="typeItem in statistics?.types ?? []" :key="typeItem.dictType" class="home-types__item" :to="{ path: RouterConstant.SITE_CODES_URL, query: { dictType: typeItem.dictType } }">
-          <span class="home-types__name">{{ typeItem.dictName }}</span>
-          <span class="home-types__meta">{{ typeItem.featuredCount }} 条精选 / {{ typeItem.gunCount }} 把枪</span>
-        </router-link>
-        <el-empty v-if="!statistics?.types?.length" :image-size="80" description="暂无武器分类数据" />
+      <div class="home-preview">
+        <article v-for="item in featuredPreview" :key="item.id" class="home-preview__card">
+          <p class="home-preview__gun">{{ item.gunLabel }}</p>
+          <code class="home-preview__code">{{ item.code }}</code>
+          <p class="home-preview__remark">{{ item.remark || '社区投稿' }}</p>
+        </article>
       </div>
     </section>
 
-    <section id="how-to" class="home-section">
-      <h2 class="home-section__title home-section__title--center">如何提交自己的改枪码</h2>
+    <section id="download" class="home-section">
+      <div class="home-download">
+        <div class="home-download__text">
+          <h2 class="home-section__title home-section__title--left">下载 {{ SITE_NAME }}</h2>
+          <p class="home-section__desc home-section__desc--left">安装到电脑，双击即用；首次打开如被系统拦截，请右键选择「打开」。</p>
+        </div>
+        <div class="home-download__actions">
+          <el-button type="primary" size="large" @click="openDownloadPage">macOS 下载</el-button>
+          <el-button size="large" disabled>Windows 即将上线</el-button>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-section home-section--muted">
+      <h2 class="home-section__title">三步上手</h2>
       <div class="home-steps">
         <div v-for="(step, index) in steps" :key="step.title" class="home-steps__item">
           <span class="home-steps__index">{{ index + 1 }}</span>
@@ -74,6 +83,7 @@ defineOptions({ name: 'SiteHome' })
 import type { Gun } from '@/types'
 import { RouterConstant } from '@/router/router.constant'
 import { GunCodeRequest } from '@/api/gun/code.request'
+import { SITE_NAME, SITE_SUBTITLE, openDownloadPage } from './constants'
 
 const router = useRouter()
 
@@ -94,10 +104,19 @@ const statItems = computed(() => [
   { label: '收录枪械', value: statistics.value?.gunCount ?? 0 },
 ])
 
+const features = [
+  { title: '精选方案', desc: '管理员从社区投稿中挑选，品质有保证。' },
+  { title: '分类检索', desc: '按武器分类与枪械逐级浏览，支持关键词搜索。' },
+  { title: '一键复制', desc: '点一下就把改枪码复制到剪贴板，进游戏直接粘贴。' },
+  { title: '我的收藏', desc: '收藏常看的方案，随时回看，不怕找不到。' },
+  { title: '登录投稿', desc: '登录后可提交自己的改枪码，等待管理员精选。' },
+  { title: '轻量客户端', desc: '独立桌面程序，不依赖浏览器，打开即用。' },
+]
+
 const steps = [
-  { title: '登录后台', desc: '使用社区账号登录，进入「枪械管理 → 改枪码」。' },
-  { title: '选择分类与枪械', desc: '先选武器分类，再选具体枪械，粘贴你的改枪码并填写备注。' },
-  { title: '等待精选', desc: '管理员会从投稿中挑出优质方案，精选后全站可见。' },
+  { title: '下载安装', desc: '从 GitHub Releases 下载对应系统的安装包，双击打开。' },
+  { title: '浏览精选', desc: '按分类与枪械找到方案，点「复制」拿到改枪码。' },
+  { title: '登录投稿', desc: '登录后可查看自己的提交，并录入新的改枪码。' },
 ]
 
 onMounted(async () => {
@@ -110,7 +129,7 @@ onMounted(async () => {
 
 <style lang="scss" scoped>
 .home-hero {
-  padding: 96px 24px 88px;
+  padding: 96px 24px 80px;
   text-align: center;
   background:
     radial-gradient(1000px 420px at 50% -12%, rgba(37, 99, 235, 0.14), transparent 70%),
@@ -140,8 +159,8 @@ onMounted(async () => {
   }
 
   &__desc {
-    margin: 0 auto 36px;
-    max-width: 580px;
+    margin: 0 auto 34px;
+    max-width: 600px;
     font-size: 16px;
     line-height: 1.8;
     color: #6b7280;
@@ -152,12 +171,17 @@ onMounted(async () => {
     justify-content: center;
     gap: 12px;
   }
+
+  &__note {
+    margin: 18px 0 0;
+    font-size: 12px;
+    color: #9ca3af;
+  }
 }
 
 .home-stats {
   border-top: 1px solid #eef0f4;
   border-bottom: 1px solid #eef0f4;
-  background: #ffffff;
 
   &__inner {
     display: grid;
@@ -213,17 +237,18 @@ onMounted(async () => {
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
-    margin-bottom: 32px;
+    max-width: 1160px;
+    margin: 0 auto 32px;
   }
 
   &__title {
     margin: 0 0 10px;
     font-size: 28px;
     font-weight: 600;
+    text-align: center;
 
-    &--center {
-      text-align: center;
-      margin-bottom: 36px;
+    &--left {
+      text-align: left;
     }
   }
 
@@ -231,30 +256,64 @@ onMounted(async () => {
     margin: 0;
     font-size: 14px;
     color: #6b7280;
+    text-align: center;
+
+    &--left {
+      text-align: left;
+    }
   }
 }
 
-.home-featured {
+.home-features {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 18px;
+  margin-top: 36px;
+}
+
+.home-feature {
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #eef0f4;
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  }
+
+  &__title {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  &__desc {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.75;
+    color: #6b7280;
+  }
+}
+
+.home-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  max-width: 1160px;
+  margin: 0 auto;
 
   &__card {
-    padding: 20px;
+    padding: 18px;
     background: #ffffff;
-    border: 1px solid #eef0f4;
+    border: 1px solid #fde68a;
     border-radius: 12px;
-    transition: transform 0.2s, box-shadow 0.2s;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-    }
   }
 
   &__gun {
     margin: 0 0 10px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
   }
 
@@ -263,7 +322,7 @@ onMounted(async () => {
     padding: 10px 12px;
     margin-bottom: 10px;
     font-family: 'SFMono-Regular', 'JetBrains Mono', Consolas, monospace;
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.6;
     color: #1f2937;
     background: #f8fafc;
@@ -271,55 +330,42 @@ onMounted(async () => {
     word-break: break-all;
   }
 
-  &__meta {
+  &__remark {
     margin: 0;
     font-size: 12px;
     color: #9ca3af;
   }
 }
 
-.home-types {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+.home-download {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 34px 36px;
+  background:
+    radial-gradient(600px 220px at 100% 0%, rgba(37, 99, 235, 0.1), transparent 70%),
+    #ffffff;
+  border: 1px solid #eef0f4;
+  border-radius: 16px;
 
-  &__item {
+  &__actions {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 18px 20px;
-    color: inherit;
-    text-decoration: none;
-    background: #ffffff;
-    border: 1px solid #eef0f4;
-    border-radius: 12px;
-    transition: border-color 0.2s, transform 0.2s;
-
-    &:hover {
-      transform: translateY(-2px);
-      border-color: rgba(37, 99, 235, 0.4);
-    }
-  }
-
-  &__name {
-    font-size: 15px;
-    font-weight: 600;
-  }
-
-  &__meta {
-    font-size: 12px;
-    color: #9ca3af;
+    flex-shrink: 0;
+    gap: 12px;
   }
 }
 
 .home-steps {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 20px;
+  gap: 18px;
+  max-width: 1160px;
+  margin: 36px auto 0;
 
   &__item {
-    padding: 24px;
-    background: #f8fafc;
+    padding: 22px;
+    background: #ffffff;
     border: 1px solid #eef0f4;
     border-radius: 12px;
   }
@@ -328,10 +374,10 @@ onMounted(async () => {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    margin-bottom: 14px;
-    font-size: 14px;
+    width: 26px;
+    height: 26px;
+    margin-bottom: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: #ffffff;
     background: #2563eb;
@@ -340,13 +386,13 @@ onMounted(async () => {
 
   &__title {
     margin: 0 0 8px;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
   }
 
   &__desc {
     margin: 0;
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1.75;
     color: #6b7280;
   }
@@ -366,10 +412,15 @@ onMounted(async () => {
     border-left: none;
   }
 
-  .home-featured,
-  .home-types,
+  .home-features,
+  .home-preview,
   .home-steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-download {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
@@ -386,8 +437,8 @@ onMounted(async () => {
     flex-direction: column;
   }
 
-  .home-featured,
-  .home-types,
+  .home-features,
+  .home-preview,
   .home-steps {
     grid-template-columns: 1fr;
   }

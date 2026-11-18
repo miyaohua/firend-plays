@@ -32,21 +32,6 @@ export class GunCodeRequest {
     return request.put('/gun/code/featured', data)
   }
 
-  /** 收藏 / 取消收藏 */
-  static toggleFavorite(data: { codeId: string }): Promise<{ favorited: boolean }> {
-    return request.post('/gun/code/favorite/toggle', data)
-  }
-
-  /** 当前用户收藏的改枪码 ID 列表 */
-  static findFavoriteIds(): Promise<string[]> {
-    return request.get('/gun/code/favorite/ids')
-  }
-
-  /** 我的收藏列表 */
-  static findFavorites(): Promise<Gun.FavoriteItem[]> {
-    return request.get('/gun/code/favorite/list')
-  }
-
   /** 公开数据概览（无需登录） */
   static findStatistics(): Promise<Gun.Statistics> {
     return request.get('/gun/code/statistics')

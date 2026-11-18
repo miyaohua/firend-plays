@@ -103,19 +103,3 @@ export interface Statistics {
   types: StatisticsType[]
 }
 
-/** 改枪码展示视图（精选页与收藏页共用） */
-export interface CodeView {
-  id: string
-  code: string
-  remark: string | null
-  isMine: boolean
-  isFeatured: boolean
-  dictType: string
-  gunValue: string
-  gunLabel: string
-}
-
-/** 我的收藏项 */
-export interface FavoriteItem extends CodeItem {
-  favoriteTime: string | null
-}

@@ -17,6 +17,9 @@ interface ImportMetaEnv {
   /** 后端接口公共路径 */
   VITE_BASE_API: string
 
+  /** 客户端下载地址（缺省时跳到 GitHub Releases） */
+  VITE_DOWNLOAD_URL?: string
+
   /** 路由的模式 hash | history */
   VITE_ROUTER_MODE: string
 
