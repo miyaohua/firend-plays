@@ -53,3 +53,10 @@ export class FeaturedGunCodeDto {
   @IsIn(['0', '1'], { message: '精选标记仅支持 1 或 0' })
   isFeatured: string
 }
+
+/** 收藏 / 取消收藏 */
+export class FavoriteGunCodeDto {
+  @IsNotEmpty({ message: '改枪码 ID 不能为空' })
+  @Length(1, 36, { message: '改枪码 ID 长度不能超过 36 个字符' })
+  codeId: string
+}

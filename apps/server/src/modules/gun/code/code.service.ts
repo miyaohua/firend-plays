@@ -5,7 +5,7 @@ import type { AuthType } from '@/types'
 import { RedisService } from '@/shared/redis.service'
 import { InjectRepository } from '@nestjs/typeorm'
 import { UserService } from '../../system/user/user.service'
-import { BusinessException, CommonConstant, DictDataEntity, DictTypeEntity, GunCodeEntity, RbacConstant, RedisConstant } from '@/common'
+import { BusinessException, CommonConstant, DictDataEntity, DictTypeEntity, GunCodeEntity, GunCodeFavoriteEntity, RbacConstant, RedisConstant } from '@/common'
 import { CreateGunCodeDto, FeaturedGunCodeDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
 
 /** 公开精选接口返回的分组结构 */
@@ -58,6 +58,7 @@ export class GunCodeService {
 
   constructor(
     @InjectRepository(GunCodeEntity) private readonly gunCodeRepository: Repository<GunCodeEntity>,
+    @InjectRepository(GunCodeFavoriteEntity) private readonly favoriteRepository: Repository<GunCodeFavoriteEntity>,
     @InjectRepository(DictTypeEntity) private readonly dictTypeRepository: Repository<DictTypeEntity>,
     @InjectRepository(DictDataEntity) private readonly dictDataRepository: Repository<DictDataEntity>,
     private readonly redisService: RedisService,
@@ -287,6 +288,46 @@ export class GunCodeService {
         featuredCount: featuredCountMap.get(type.dictType) ?? 0,
       })),
     }
+  }
+
+  /** 切换收藏状态：已收藏则取消，未收藏则新增 */
+  public async toggleFavorite(codeId: string, userId: string): Promise<{ favorited: boolean }> {
+    const code = await this.gunCodeRepository.findOneBy({ id: Equal(codeId) })
+    if (!code) throw new BusinessException('改枪码不存在')
+
+    const existing = await this.favoriteRepository.findOneBy({ userId: Equal(userId), codeId: Equal(codeId) })
+    if (existing) {
+      await this.favoriteRepository.delete({ id: existing.id })
+      return { favorited: false }
+    }
+
+    const entity = new GunCodeFavoriteEntity()
+    entity.userId = userId
+    entity.codeId = codeId
+    await this.favoriteRepository.save(entity)
+    return { favorited: true }
+  }
+
+  /** 当前用户收藏的改枪码 ID 列表（精选页用于标记收藏态） */
+  public async findFavoriteIds(userId: string): Promise<string[]> {
+    const favorites = await this.favoriteRepository.find({ where: { userId: Equal(userId) }, select: { codeId: true } })
+    return favorites.map((favorite) => favorite.codeId)
+  }
+
+  /** 我的收藏：按收藏时间倒序返回改枪码详情，已删除的码自动过滤 */
+  public async findMyFavorites(userId: string) {
+    const favorites = await this.favoriteRepository.find({ where: { userId: Equal(userId) }, order: { createTime: 'DESC' } })
+    if (!favorites.length) return []
+
+    const codes = await this.gunCodeRepository.find({ where: { id: In(favorites.map((favorite) => favorite.codeId)) } })
+    const codeMap = new Map(codes.map((code) => [code.id, code]))
+
+    return favorites
+      .filter((favorite) => codeMap.has(favorite.codeId))
+      .map((favorite) => {
+        const code = codeMap.get(favorite.codeId) as GunCodeEntity
+        return { ...this.toListView(code, userId, false), favoriteTime: this.formatTime(favorite.createTime) }
+      })
   }
 
   /** 失效公开接口缓存（精选列表 + 首页统计）：数据变更后官网需立即看到新数据 */

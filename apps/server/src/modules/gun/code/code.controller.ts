@@ -2,7 +2,7 @@ import type { AuthType } from '@/types'
 import { GunCodeService } from './code.service'
 import { Body, Controller, Delete, Get, ParseArrayPipe, Post, Put, Query } from '@nestjs/common'
 import { BusinessType, CurrentUser, Operlog, PaginationPipe, Public, RepeatSubmit, RequirePermissions, ResponseCache } from '@/common'
-import { CreateGunCodeDto, FeaturedGunCodeDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
+import { CreateGunCodeDto, FavoriteGunCodeDto, FeaturedGunCodeDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
 
 @Controller('gun/code')
 export class GunCodeController {
@@ -22,6 +22,24 @@ export class GunCodeController {
   @ResponseCache({ key: 'gun:code:statistics', ttl: 300 })
   public getStatistics() {
     return this.gunCodeService.getStatistics()
+  }
+
+  /** 收藏 / 取消收藏（登录即可，无需额外权限点；同一请求体代表相反动作，不能挂防重复提交） */
+  @Post('favorite/toggle')
+  public toggleFavorite(@Body() favoriteDto: FavoriteGunCodeDto, @CurrentUser('userId') userId: string) {
+    return this.gunCodeService.toggleFavorite(favoriteDto.codeId, userId)
+  }
+
+  /** 当前用户收藏的改枪码 ID 列表 */
+  @Get('favorite/ids')
+  public findFavoriteIds(@CurrentUser('userId') userId: string) {
+    return this.gunCodeService.findFavoriteIds(userId)
+  }
+
+  /** 我的收藏列表 */
+  @Get('favorite/list')
+  public findFavorites(@CurrentUser('userId') userId: string) {
+    return this.gunCodeService.findMyFavorites(userId)
   }
 
   /** 分类与枪械选项（公开：官网精选页需要展示全部分类下的全部枪械） */

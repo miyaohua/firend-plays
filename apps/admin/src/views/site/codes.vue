@@ -6,11 +6,11 @@
         <span class="codes-head__sep">/</span>
         <span>精选改枪码</span>
       </p>
-      <p class="codes-head__desc">按「武器分类 → 枪械 → 改枪码」浏览，点击卡片右上角即可复制。</p>
+      <p class="codes-head__desc">按「武器分类 → 枪械 → 改枪码」浏览，支持复制与收藏。</p>
     </header>
 
     <div v-if="!isLoggedIn" class="codes-tip">
-      <span>登录后可以在这里看到自己提交的改枪码</span>
+      <span>登录后可以在这里看到自己提交的改枪码，并收藏喜欢的方案</span>
       <router-link :to="{ path: '/login', query: { redirect: '/codes' } }" class="codes-tip__link">去登录 →</router-link>
     </div>
 
@@ -70,23 +70,14 @@
             </div>
 
             <div class="codes-list">
-              <article v-for="item in section.codes" :key="item.id" class="codes-card" :class="`is-${section.key}`">
-                <div class="codes-card__head">
-                  <div class="codes-card__title">
-                    <span class="codes-card__gun">{{ item.gunLabel }}</span>
-                    <el-tag v-if="item.isFeatured" type="warning" size="small" effect="dark">精选</el-tag>
-                    <el-tag v-if="item.isMine" type="primary" size="small" effect="plain">我的</el-tag>
-                  </div>
-                  <button type="button" class="codes-card__copy" @click="copyCode(item)">
-                    {{ copiedId === item.id ? '已复制' : '复制' }}
-                  </button>
-                </div>
-                <code class="codes-card__text">{{ item.code }}</code>
-                <p class="codes-card__remark">
-                  <span class="codes-card__label">备注</span>
-                  <span class="codes-card__remark-text" :class="{ 'is-empty': !item.remark }">{{ item.remark || '暂无备注' }}</span>
-                </p>
-              </article>
+              <CodeCard
+                v-for="item in section.codes"
+                :key="item.id"
+                :item="item"
+                :tone="section.key as 'featured' | 'mine' | 'favorite'"
+                :favorited="favoriteIdSet.has(item.id)"
+                @favorite="toggleFavorite"
+              />
             </div>
           </section>
         </div>
@@ -104,18 +95,7 @@ defineOptions({ name: 'SiteCodes' })
 import type { Gun } from '@/types'
 import { TipModal, getAccessToken } from '@/utils'
 import { GunCodeRequest } from '@/api/gun/code.request'
-
-/** 页面展示用的改枪码（合并「精选」与「我的」后统一结构） */
-interface DisplayCode {
-  id: string
-  code: string
-  remark: string | null
-  isMine: boolean
-  isFeatured: boolean
-  dictType: string
-  gunValue: string
-  gunLabel: string
-}
+import CodeCard from './components/CodeCard.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -126,35 +106,43 @@ const options = ref<Gun.TypeOption[]>([])
 const featuredGroups = ref<Gun.FeaturedGroup[]>([])
 /** 当前登录用户自己提交的码（未登录为空） */
 const myRecords = ref<Gun.CodeItem[]>([])
+/** 当前登录用户的收藏（用于「我的收藏」筛选与收藏态标记） */
+const favoriteRecords = ref<Gun.FavoriteItem[]>([])
+const favoriteIds = ref<string[]>([])
 const selectedType = ref('')
 /** 空字符串表示「全部枪械」，默认展示该分类下所有改枪码 */
 const selectedGun = ref('')
-const copiedId = ref('')
-/** 快速筛选：全部 / 只看社区精选 / 只看我的提交 */
-const codeFilter = ref<'all' | 'featured' | 'mine'>('all')
+/** 快速筛选：全部 / 社区精选 / 我的提交 / 我的收藏 */
+const codeFilter = ref<'all' | 'featured' | 'mine' | 'favorites'>('all')
 
 const isLoggedIn = computed(() => Boolean(getAccessToken()))
+const favoriteIdSet = computed(() => new Set(favoriteIds.value))
 
-/** 合并「精选」与「我的」：精选来自公开接口，我的来自登录后的列表接口 */
-const displayCodes = computed<DisplayCode[]>(() => {
-  const codes: DisplayCode[] = []
+/** 合并「精选」「我的」「收藏」：收藏单独并入，避免取消精选后收藏项消失 */
+const displayCodes = computed<Gun.CodeView[]>(() => {
+  const codes: Gun.CodeView[] = []
+
+  const pushCode = (code: Gun.CodeView) => {
+    const existingCode = codes.find((codeItem) => codeItem.id === code.id)
+    if (existingCode) {
+      existingCode.isMine = existingCode.isMine || code.isMine
+      existingCode.isFeatured = existingCode.isFeatured || code.isFeatured
+      return
+    }
+    codes.push({ ...code })
+  }
 
   for (const group of featuredGroups.value) {
     for (const gunItem of group.guns) {
       for (const item of gunItem.codes) {
-        codes.push({ id: item.id, code: item.code, remark: item.remark, isMine: false, isFeatured: true, dictType: group.dictType, gunValue: gunItem.gunValue, gunLabel: gunItem.gunLabel })
+        pushCode({ id: item.id, code: item.code, remark: item.remark, isMine: false, isFeatured: true, dictType: group.dictType, gunValue: gunItem.gunValue, gunLabel: gunItem.gunLabel })
       }
     }
   }
 
   for (const record of myRecords.value) {
     if (!record.isMine) continue
-    const existingCode = codes.find((codeItem) => codeItem.id === record.id)
-    if (existingCode) {
-      existingCode.isMine = true
-      continue
-    }
-    codes.push({
+    pushCode({
       id: record.id,
       code: record.code,
       remark: record.remark,
@@ -166,10 +154,24 @@ const displayCodes = computed<DisplayCode[]>(() => {
     })
   }
 
+  // 收藏里可能包含「已被取消精选且非本人」的历史码，单独并进来
+  for (const record of favoriteRecords.value) {
+    pushCode({
+      id: record.id,
+      code: record.code,
+      remark: record.remark,
+      isMine: record.isMine,
+      isFeatured: record.isFeatured === '1',
+      dictType: record.dictType,
+      gunValue: record.gunValue,
+      gunLabel: record.gunLabel,
+    })
+  }
+
   return codes
 })
 
-/** 左侧分类：展示全部武器分类，数量为「精选 + 我的」总数 */
+/** 左侧分类：展示全部武器分类，数量为当前可展示的码总数 */
 const typeList = computed(() =>
   options.value.map((typeItem) => ({
     dictType: typeItem.dictType,
@@ -192,27 +194,34 @@ const codeList = computed(() => {
   })
 })
 
-/** 分区：社区精选 与 我的提交（既精选又自己的码只在精选区展示，并同时带两个标签） */
+/** 分区：社区精选 / 我的提交 / 我的收藏 */
 const featuredCodes = computed(() => codeList.value.filter((item) => item.isFeatured))
 const mineCodes = computed(() => codeList.value.filter((item) => item.isMine && !item.isFeatured))
+const favoriteCodes = computed(() => codeList.value.filter((item) => favoriteIdSet.value.has(item.id)))
+
 const filterOptions = computed(() => [
   { value: 'all' as const, label: '全部', count: featuredCodes.value.length + mineCodes.value.length },
   { value: 'featured' as const, label: '社区精选', count: featuredCodes.value.length },
   { value: 'mine' as const, label: '我的提交', count: mineCodes.value.length },
+  { value: 'favorites' as const, label: '我的收藏', count: favoriteCodes.value.length },
 ])
 
 const sections = computed(() => {
   const allSections = [
     { key: 'featured', title: '社区精选', hint: '管理员挑选的推荐方案', codes: featuredCodes.value },
     { key: 'mine', title: '我的提交', hint: '未精选的方案仅自己可见', codes: mineCodes.value },
+    { key: 'favorite', title: '我的收藏', hint: '你收藏的方案', codes: favoriteCodes.value },
   ].filter((section) => section.codes.length > 0)
+
+  if (codeFilter.value === 'favorites') return allSections.filter((section) => section.key === 'favorite')
   if (codeFilter.value === 'featured') return allSections.filter((section) => section.key === 'featured')
   if (codeFilter.value === 'mine') return allSections.filter((section) => section.key === 'mine')
-  return allSections
+  return allSections.filter((section) => section.key !== 'favorite')
 })
 
 const emptyDescription = computed(() => {
   if (!selectedType.value) return '暂无改枪码'
+  if (codeFilter.value === 'favorites') return '该分类下还没有收藏的改枪码'
   if (codeFilter.value === 'mine') return '该分类下你还没有提交改枪码'
   if (codeFilter.value === 'featured') return '该分类暂无精选方案'
   if (selectedGun.value) return isLoggedIn.value ? '该枪械暂无精选或你提交的改枪码' : '该枪械暂无精选方案'
@@ -230,44 +239,17 @@ function selectGun(gunValue: string) {
   selectedGun.value = gunValue
 }
 
-/** 复制文本：优先 Clipboard API，失败时回退到隐藏 textarea（非 HTTPS 环境可用） */
-async function copyText(text: string): Promise<boolean> {
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text)
-      return true
-    }
-  } catch {
-    // 无权限或无用户手势时继续走兜底方案
-  }
-  try {
-    const textarea = document.createElement('textarea')
-    textarea.value = text
-    textarea.style.position = 'fixed'
-    textarea.style.top = '-1000px'
-    textarea.style.opacity = '0'
-    document.body.appendChild(textarea)
-    textarea.select()
-    const copied = document.execCommand('copy')
-    document.body.removeChild(textarea)
-    return copied
-  } catch {
-    return false
-  }
-}
-
-/** 复制改枪码并给出提示 */
-async function copyCode(item: DisplayCode) {
-  const copied = await copyText(item.code)
-  if (!copied) {
-    TipModal.msgError('复制失败，请手动选中复制')
+/** 收藏 / 取消收藏；未登录时引导登录 */
+async function toggleFavorite(item: Gun.CodeView) {
+  if (!isLoggedIn.value) {
+    TipModal.msgWarning('登录后才能收藏改枪码')
+    router.push({ path: '/login', query: { redirect: `/codes?dictType=${item.dictType}` } })
     return
   }
-  copiedId.value = item.id
-  TipModal.msgSuccess('改枪码已复制')
-  setTimeout(() => {
-    if (copiedId.value === item.id) copiedId.value = ''
-  }, 1500)
+
+  const result = await GunCodeRequest.toggleFavorite({ codeId: item.id })
+  favoriteIds.value = result.favorited ? [...favoriteIds.value, item.id] : favoriteIds.value.filter((id) => id !== item.id)
+  TipModal.msgSuccess(result.favorited ? '已加入收藏' : '已取消收藏')
 }
 
 onMounted(async () => {
@@ -275,15 +257,19 @@ onMounted(async () => {
   if (optionsResult.status === 'fulfilled') options.value = optionsResult.value
   if (featuredResult.status === 'fulfilled') featuredGroups.value = featuredResult.value
 
-  // 已登录时额外拉取自己的改枪码（失败不影响公开精选展示）
+  // 已登录时额外拉取自己的改枪码与收藏（失败不影响公开精选展示）
   if (isLoggedIn.value) {
     try {
       // 公开页不会走路由守卫，需先拉一次用户信息以预热角色/权限缓存，否则列表接口会因缓存缺失 fail-closed
       await userStore.getInfo()
-      const ownList = await GunCodeRequest.findList({ pageNo: 1, pageSize: 200, scope: 'mine' })
+      const [ownList, favoriteList] = await Promise.all([GunCodeRequest.findList({ pageNo: 1, pageSize: 200, scope: 'mine' }), GunCodeRequest.findFavorites()])
       myRecords.value = ownList.records
+      favoriteRecords.value = favoriteList
+      favoriteIds.value = favoriteList.map((record) => record.id)
     } catch {
       myRecords.value = []
+      favoriteRecords.value = []
+      favoriteIds.value = []
     }
   }
 
@@ -527,6 +513,10 @@ onMounted(async () => {
     &--mine {
       background: #2563eb;
     }
+
+    &--favorite {
+      background: #7c3aed;
+    }
   }
 
   &__title {
@@ -556,98 +546,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 14px;
-}
-
-.codes-card {
-  padding: 18px 20px;
-  background: #ffffff;
-  border: 1px solid #eef0f4;
-  border-radius: 12px;
-
-  /* 分区弱着色：精选淡金、我的淡蓝，配合分组标题强化归属 */
-  &.is-featured {
-    border-color: #fde68a;
-  }
-
-  &.is-mine {
-    border-color: #bfdbfe;
-  }
-
-  &__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-
-  &__title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__gun {
-    font-size: 15px;
-    font-weight: 600;
-    color: #1f2937;
-  }
-
-  &__copy {
-    padding: 5px 14px;
-    font-size: 12px;
-    color: #2563eb;
-    background: rgba(37, 99, 235, 0.08);
-    border: none;
-    border-radius: 999px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-
-    &:hover {
-      background: rgba(37, 99, 235, 0.16);
-    }
-  }
-
-  &__text {
-    display: block;
-    padding: 12px 14px;
-    margin-bottom: 12px;
-    font-family: 'SFMono-Regular', 'JetBrains Mono', Consolas, monospace;
-    font-size: 13px;
-    line-height: 1.7;
-    color: #1f2937;
-    background: #f8fafc;
-    border-radius: 8px;
-    word-break: break-all;
-  }
-
-  /* 备注：轻分隔线 + 弱化标签，避免色块与撞色竖条过于抢眼 */
-  &__remark {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin: 0;
-    padding-top: 10px;
-    border-top: 1px dashed #eef0f4;
-  }
-
-  &__label {
-    flex-shrink: 0;
-    font-size: 12px;
-    line-height: 21px;
-    color: #9ca3af;
-  }
-
-  &__remark-text {
-    font-size: 13px;
-    line-height: 21px;
-    color: #4b5563;
-    word-break: break-all;
-
-    &.is-empty {
-      color: #c0c4cc;
-    }
-  }
 }
 
 @media (max-width: 900px) {
