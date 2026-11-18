@@ -127,7 +127,7 @@ ipcMain.handle('app:config', () => ({
   apiBase: API_BASE,
   version: app.getVersion(),
   platform: process.platform,
-  adContact: process.env.DESKTOP_AD_CONTACT || 'business@example.com',
+  adContact: process.env.DESKTOP_AD_CONTACT || '2542571191@qq.com',
 }))
 
 /** 公开接口（分类选项、精选列表） */

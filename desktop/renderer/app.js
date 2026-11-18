@@ -11,7 +11,7 @@ const state = {
   user: null,
   captcha: null,
   keyword: '',
-  adContact: 'business@example.com',
+  adContact: '2542571191@qq.com',
   confirmAction: null,
   loading: false,
 }
