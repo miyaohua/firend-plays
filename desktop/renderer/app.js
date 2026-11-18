@@ -10,6 +10,7 @@ const state = {
   view: 'featured',
   user: null,
   captcha: null,
+  registerCaptcha: null,
   keyword: '',
   adContact: '2542571191@qq.com',
   siteUrl: 'http://localhost:5173',
@@ -46,6 +47,17 @@ const dom = {
   captchaImage: document.getElementById('captchaImage'),
   loginError: document.getElementById('loginError'),
   loginSubmit: document.getElementById('loginSubmit'),
+  registerModal: document.getElementById('registerModal'),
+  regUsername: document.getElementById('regUsername'),
+  regPassword: document.getElementById('regPassword'),
+  regConfirm: document.getElementById('regConfirm'),
+  regPhone: document.getElementById('regPhone'),
+  regNickname: document.getElementById('regNickname'),
+  regCaptcha: document.getElementById('regCaptcha'),
+  regCaptchaField: document.getElementById('regCaptchaField'),
+  regCaptchaImage: document.getElementById('regCaptchaImage'),
+  regError: document.getElementById('regError'),
+  regSubmit: document.getElementById('regSubmit'),
   submitModal: document.getElementById('submitModal'),
   submitType: document.getElementById('submitType'),
   submitGun: document.getElementById('submitGun'),
@@ -570,6 +582,93 @@ function handleLogout() {
   })
 }
 
+/* ---------------- 注册 ---------------- */
+
+async function refreshRegisterCaptcha() {
+  try {
+    const payload = await window.desktop.getCaptcha()
+    state.registerCaptcha = payload
+    if (payload.enabled) {
+      dom.regCaptchaField.hidden = false
+      dom.regCaptchaImage.src = payload.captcha
+      dom.regCaptchaImage.dataset.uuid = payload.uuid
+      dom.regCaptcha.value = ''
+    } else {
+      dom.regCaptchaField.hidden = true
+    }
+  } catch {
+    dom.regCaptchaField.hidden = true
+  }
+}
+
+function openRegisterModal() {
+  hideModal(dom.loginModal)
+  dom.regUsername.value = ''
+  dom.regPassword.value = ''
+  dom.regConfirm.value = ''
+  dom.regPhone.value = ''
+  dom.regNickname.value = ''
+  dom.regCaptcha.value = ''
+  dom.regError.textContent = ''
+  showModal(dom.registerModal)
+  dom.regUsername.focus()
+  refreshRegisterCaptcha()
+}
+
+async function handleRegister() {
+  const username = dom.regUsername.value.trim()
+  const password = dom.regPassword.value
+  const confirmPassword = dom.regConfirm.value
+  const phone = dom.regPhone.value.trim()
+  const nickname = dom.regNickname.value.trim()
+  const captcha = dom.regCaptcha.value.trim()
+  dom.regError.textContent = ''
+
+  if (!/^[a-zA-Z][a-zA-Z0-9]{2,19}$/.test(username)) {
+    dom.regError.textContent = '账号需以字母开头，3-20 位字母或数字'
+    return
+  }
+  if (!/^(?=.*[A-Za-z])(?=.*\d).{6,20}$/.test(password)) {
+    dom.regError.textContent = '密码需 6-20 位且同时包含字母与数字'
+    return
+  }
+  if (password !== confirmPassword) {
+    dom.regError.textContent = '两次输入的密码不一致'
+    return
+  }
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    dom.regError.textContent = '请输入正确的手机号'
+    return
+  }
+  if (state.registerCaptcha?.enabled && !captcha) {
+    dom.regError.textContent = '请输入验证码'
+    return
+  }
+
+  dom.regSubmit.disabled = true
+  try {
+    const user = await window.desktop.register({
+      username,
+      password,
+      phone,
+      nickname: nickname || undefined,
+      captcha,
+      uuid: state.registerCaptcha?.uuid ?? '',
+    })
+    state.user = user
+    hideModal(dom.registerModal)
+    updateAuthUi()
+    showToast(`欢迎加入，${user.nickname || user.username}`)
+    await loadMine()
+    renderAll()
+  } catch (error) {
+    dom.regError.textContent = normalizeError(error)
+    await refreshRegisterCaptcha()
+  } finally {
+    dom.regSubmit.disabled = false
+  }
+}
+
 /* ---------------- 提交改枪码 ---------------- */
 
 function fillGunSelect() {
@@ -668,8 +767,10 @@ async function bootstrap() {
   })
   dom.registerLink.addEventListener('click', (event) => {
     event.preventDefault()
-    window.open(`${state.siteUrl}/register`, '_blank')
+    openRegisterModal()
   })
+  dom.regCaptchaImage.addEventListener('click', refreshRegisterCaptcha)
+  dom.regSubmit.addEventListener('click', handleRegister)
   dom.adCopyBtn.addEventListener('click', async () => {
     await window.desktop.copy(state.adContact)
     showToast('商务邮箱已复制')
@@ -694,6 +795,7 @@ async function bootstrap() {
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       hideModal(dom.loginModal)
+      hideModal(dom.registerModal)
       hideModal(dom.submitModal)
     }
   })
@@ -702,6 +804,12 @@ async function bootstrap() {
   for (const input of [dom.loginUsername, dom.loginPassword, dom.loginCaptcha]) {
     input.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') handleLogin()
+    })
+  }
+
+  for (const input of [dom.regUsername, dom.regPassword, dom.regConfirm, dom.regPhone, dom.regNickname, dom.regCaptcha]) {
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') handleRegister()
     })
   }
 

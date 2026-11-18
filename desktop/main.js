@@ -152,6 +152,20 @@ ipcMain.handle('auth:login', async (_event, credentials) => {
   return currentSession()
 })
 
+ipcMain.handle('auth:register', async (_event, form) => {
+  const tokens = await requestApi('/auth/register', { method: 'POST', body: form })
+  session = { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, user: null }
+
+  const info = await requestApi('/auth/getInfo', { auth: true })
+  session.user = {
+    username: info.user.username,
+    nickname: info.user.nickname,
+    roles: info.roles,
+    permissions: info.permissions,
+  }
+  return currentSession()
+})
+
 ipcMain.handle('auth:logout', async () => {
   if (session?.accessToken) {
     try {
