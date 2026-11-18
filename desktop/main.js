@@ -18,6 +18,9 @@ function resolveApiBase() {
 
 const API_BASE = resolveApiBase()
 
+/** 官网地址：桌面端「注册」跳转用，可用 DESKTOP_SITE_URL 覆盖 */
+const SITE_URL = process.env.DESKTOP_SITE_URL || 'http://localhost:5173'
+
 /** 当前登录会话：令牌只保存在主进程，渲染进程拿不到 */
 let session = null
 
@@ -128,6 +131,7 @@ ipcMain.handle('app:config', () => ({
   version: app.getVersion(),
   platform: process.platform,
   adContact: process.env.DESKTOP_AD_CONTACT || '2542571191@qq.com',
+  siteUrl: SITE_URL,
 }))
 
 /** 公开接口（分类选项、精选列表） */
@@ -161,6 +165,34 @@ ipcMain.handle('auth:logout', async () => {
 })
 
 ipcMain.handle('auth:session', () => currentSession())
+
+/** 当前广告：图片在主进程取回转 data URL，避免放宽渲染进程 CSP */
+ipcMain.handle('ad:current', async () => {
+  const ads = await requestApi('/ad/current?position=desktop-slot')
+
+  return Promise.all(
+    ads.map(async (ad) => {
+      if (ad.contentType !== 'I' || !ad.imageUrl) return { ...ad, imageData: null }
+      try {
+        const imageUrl = /^https?:/i.test(ad.imageUrl) ? ad.imageUrl : `${API_BASE}/${String(ad.imageUrl).replace(/^\//, '')}`
+        const response = await fetch(imageUrl)
+        if (!response.ok) return { ...ad, imageData: null }
+        const buffer = Buffer.from(await response.arrayBuffer())
+        const mime = response.headers.get('content-type') || 'image/png'
+        return { ...ad, imageData: `data:${mime};base64,${buffer.toString('base64')}` }
+      } catch {
+        return { ...ad, imageData: null }
+      }
+    }),
+  )
+})
+
+/** 广告曝光 / 点击上报 */
+ipcMain.handle('ad:report', (_event, payload = {}) => {
+  const { id, type } = payload
+  if (!id || !['view', 'click'].includes(type)) throw new Error('广告上报参数不合法')
+  return requestApi(`/ad/${type}`, { method: 'POST', body: { id } })
+})
 
 /** 图片验证码（公开接口） */
 ipcMain.handle('auth:captcha', () => requestApi('/auth/captcha'))

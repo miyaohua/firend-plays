@@ -32,12 +32,8 @@
       </aside>
 
       <section class="content">
-        <!-- 预留广告位：整行平铺，点击打开合作说明 -->
-        <div class="ad-slot">
-          <span class="ad-slot__label">广告合作</span>
-          <span class="ad-slot__text">此处预留广告位，支持图片 / 文字链 / 固定展示位合作</span>
-          <button id="adContactBtn" class="ad-slot__action" type="button">联系合作</button>
-        </div>
+        <!-- 广告位：后台配置后轮播展示，无广告时显示合作占位 -->
+        <div id="adSlot" class="ad-slot"></div>
 
         <div id="toolbar" class="toolbar">
           <div id="viewSwitch" class="view-switch" hidden>
@@ -91,6 +87,8 @@
           <button class="button button--ghost" type="button" data-close="loginModal">取消</button>
           <button id="loginSubmit" class="button button--primary" type="button">登录</button>
         </div>
+
+        <p class="login-register">还没有账号？<a href="#" id="registerLink">立即注册</a></p>
       </div>
     </div>
 

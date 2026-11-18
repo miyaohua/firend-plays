@@ -1,4 +1,4 @@
-import { LoginDto, RefreshTokenDto } from './auth.dto'
+import { LoginDto, RefreshTokenDto, RegisterDto } from './auth.dto'
 import { AuthService } from './auth.service'
 import { Body, Controller, Get, Post, Req, Headers } from '@nestjs/common'
 import { CommonConstant, CurrentUser, Public, RepeatSubmit, SkipThrottle } from '@/common'
@@ -21,6 +21,14 @@ export class AuthController {
   @Post('login')
   public login(@Body() loginDto: LoginDto, @Req() request: ExpressRequest) {
     return this.authService.login(loginDto, request)
+  }
+
+  /** 自助注册（公开，验证码按系统参数开关校验） */
+  @Public()
+  @RepeatSubmit()
+  @Post('register')
+  public register(@Body() registerDto: RegisterDto, @Req() request: ExpressRequest) {
+    return this.authService.register(registerDto, request)
   }
 
   /** 刷新令牌（无感续期，不挂防重复提交：并发 401 排队重放时 body 相同会被误拦） */

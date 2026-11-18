@@ -619,3 +619,55 @@ body {
 .footer-link:hover {
   color: #2563eb;
 }
+
+/* 广告位：图片 / 文字轮播 */
+.ad-slot.is-ad {
+  justify-content: center;
+  padding: 8px 12px;
+}
+
+.ad-slot.is-clickable {
+  cursor: pointer;
+}
+
+.ad-slot__image {
+  display: block;
+  flex: 1;
+  width: 100%;
+  max-height: 76px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.ad-slot__dots {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+  margin-left: 12px;
+}
+
+.ad-slot__dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  background: #d1d5db;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.ad-slot__dot.is-active {
+  background: #2563eb;
+}
+
+.login-register {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: center;
+}
+
+.login-register a {
+  color: #2563eb;
+  text-decoration: none;
+}

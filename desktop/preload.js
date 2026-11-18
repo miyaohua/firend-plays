@@ -18,6 +18,11 @@ contextBridge.exposeInMainWorld('desktop', {
   /** 退出登录 */
   logout: () => ipcRenderer.invoke('auth:logout'),
 
+  /** 当前广告（含图片 data URL） */
+  getAds: () => ipcRenderer.invoke('ad:current'),
+  /** 广告曝光 / 点击上报 */
+  reportAd: (payload) => ipcRenderer.invoke('ad:report', payload),
+
   /** 提交改枪码 */
   submitCode: (form) => ipcRenderer.invoke('gun:submit', form),
   /** 我的提交 */

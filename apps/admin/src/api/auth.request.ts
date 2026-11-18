@@ -12,6 +12,11 @@ export abstract class AuthRequest {
     return request.post(`/auth/login`, data)
   }
 
+  /** 自助注册（成功后直接返回令牌，实现自动登录） */
+  static register(data: Auth.RegisterParams): Promise<Auth.LoginResult> {
+    return request.post(`/auth/register`, data)
+  }
+
   /** 刷新令牌 */
   static refreshToken(data: Auth.RefreshTokenParams): Promise<Auth.LoginResult> {
     return request.post(`/auth/refreshToken`, data)

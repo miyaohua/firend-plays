@@ -95,6 +95,11 @@ export const CommonConstant = {
    */
   CAPTCHA_ENABLED_CONFIG_KEY: 'sys.account.captchaEnabled',
 
+  /**
+   * sys_config 内置参数，控制是否开放自助注册；参数缺失时后端默认开启
+   */
+  REGISTER_ENABLED_CONFIG_KEY: 'sys.account.registerEnabled',
+
   /** 登录失败锁定阈值参数键名（账号+IP 维度，默认 5 次） */
   MAX_FAIL_COUNT_CONFIG_KEY: 'sys.account.maxFailCount',
 

@@ -21,6 +21,22 @@ export interface LoginParams {
   uuid: string
 }
 
+/** 自助注册参数 */
+export interface RegisterParams {
+  /** 账号 */
+  username: string
+  /** 密码 */
+  password: string
+  /** 手机号 */
+  phone: string
+  /** 昵称（可选） */
+  nickname?: string
+  /** 验证码 */
+  captcha: string
+  /** 验证码唯一标识 */
+  uuid: string
+}
+
 /** 登录响应数据 */
 export interface LoginResult {
   /** 访问令牌 */

@@ -1,4 +1,4 @@
-import { LoginDto } from './auth.dto'
+import { LoginDto, RegisterDto } from './auth.dto'
 import type { AuthType } from '@/types'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
@@ -70,6 +70,23 @@ export class AuthService {
       this.logService.createLoginlog(request, errorMsg)
       throw error
     }
+  }
+
+  /** 自助注册：校验开关与验证码后建号，并直接签发令牌实现自动登录 */
+  public async register(registerDto: RegisterDto, request: ExpressRequest) {
+    const registerEnabled = await this.sysConfigService.getBooleanConfig(CommonConstant.REGISTER_ENABLED_CONFIG_KEY, true)
+    if (!registerEnabled) throw new BusinessException('当前暂未开放注册')
+
+    const captchaEnabled = await this.sysConfigService.getBooleanConfig(CommonConstant.CAPTCHA_ENABLED_CONFIG_KEY, true)
+    if (captchaEnabled) await this.captchaService.validate(registerDto.uuid, registerDto.captcha)
+
+    const user = await this.userService.registerUser(registerDto)
+    const { accessTokenKey, accessToken, refreshToken } = await this.generateTokenPair(user)
+
+    this.userService.getRepository().update(user.id, { loginTime: formatTime() })
+    this.logService.createLoginlog(request, '注册成功', user.id, accessTokenKey)
+
+    return { accessToken, refreshToken, expiresIn: this.expiresIn }
   }
 
   /** 获取登录用户信息（每次调用都重建角色/部门缓存与角色级权限缓存，权限变更刷新即生效） */

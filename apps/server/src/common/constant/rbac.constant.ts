@@ -35,4 +35,7 @@ export const RbacConstant = {
    * 唯一的超管判定依据（roleCode === 'admin'），禁止依赖用户 ID 判定
    */
   SUPER_ROLE_CODE: 'admin',
+
+  /** 默认注册角色编码（自助注册用户自动授予） */
+  COMMON_ROLE_CODE: 'common',
 } as const

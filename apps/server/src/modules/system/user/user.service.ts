@@ -27,6 +27,32 @@ export class UserService {
     private readonly excelService: ExcelService,
   ) {}
 
+  /** 自助注册建号：默认普通用户角色、未分配部门，仅填账号/密码/手机号/昵称 */
+  public async registerUser(registerDto: { username: string; password: string; phone: string; nickname?: string }): Promise<UserEntity> {
+    const { username, password, phone, nickname } = registerDto
+
+    if (await this.userRepository.existsBy({ username: Equal(username) })) throw new BusinessException('该账号已被注册')
+    // 同名软删墓碑仍占用 username 唯一索引，先物理清理
+    const tombstone = await this.userRepository.findOne({ where: { username: Equal(username) }, withDeleted: true })
+    if (tombstone?.deleteTime) await this.userRepository.delete(tombstone.id)
+    if (await this.checkPhoneExists(phone)) throw new BusinessException('该手机号已被注册')
+
+    const commonRole = await this.roleRepository.findOneBy({ roleCode: Equal(RbacConstant.COMMON_ROLE_CODE) })
+    if (!commonRole) throw new BusinessException('系统未配置默认角色，请联系管理员')
+
+    const entity = new UserEntity()
+    entity.username = username
+    entity.password = await encryptPassword(password)
+    entity.phone = phone
+    entity.nickname = nickname || username
+    entity.status = CommonConstant.STATUS_NORMAL
+    entity.gender = '2'
+    entity.deptId = CommonConstant.DEFAULT_PARENT_ID
+    entity.roles = [commonRole]
+    await this.userRepository.save(entity)
+    return entity
+  }
+
   /** 创建用户 */
   public async create(createDto: CreateUserDto) {
     const { username, phone, email, roleIds } = createDto

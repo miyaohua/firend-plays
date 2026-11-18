@@ -10,6 +10,7 @@ export const STATIC_ROUTE_LIST: RouteRecordRaw[] = [
     meta: { public: true, hidden: true },
     children: [
       { name: RouterConstant.SITE_PAGE_NAME, path: '', component: () => import('@/views/site/home.vue'), meta: { title: '首页', public: true } },
+      { name: RouterConstant.SITE_REGISTER_NAME, path: 'register', component: () => import('@/views/site/register.vue'), meta: { title: '注册', public: true } },
     ],
   },
 

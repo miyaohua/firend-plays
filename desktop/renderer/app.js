@@ -12,6 +12,11 @@ const state = {
   captcha: null,
   keyword: '',
   adContact: '2542571191@qq.com',
+  siteUrl: 'http://localhost:5173',
+  ads: [],
+  adIndex: 0,
+  shownAdIds: new Set(),
+  adTimer: null,
   confirmAction: null,
   loading: false,
 }
@@ -50,7 +55,8 @@ const dom = {
   submitConfirm: document.getElementById('submitConfirm'),
   searchInput: document.getElementById('searchInput'),
   toolbar: document.getElementById('toolbar'),
-  adContactBtn: document.getElementById('adContactBtn'),
+  adSlot: document.getElementById('adSlot'),
+  registerLink: document.getElementById('registerLink'),
   adContact: document.getElementById('adContact'),
   adCopyBtn: document.getElementById('adCopyBtn'),
   adModal: document.getElementById('adModal'),
@@ -207,6 +213,111 @@ function renderGuns() {
 
   createGunButton('全部', '')
   for (const gun of typeItem.guns) createGunButton(gun.label, gun.value)
+}
+
+/** 渲染广告位：有广告则轮播，无广告回退合作占位 */
+function renderAdPanel() {
+  const ads = state.ads
+  const ad = ads.length ? ads[state.adIndex % ads.length] : null
+  dom.adSlot.replaceChildren()
+  dom.adSlot.className = 'ad-slot'
+  dom.adSlot.onclick = null
+
+  if (!ad) {
+    const label = document.createElement('span')
+    label.className = 'ad-slot__label'
+    label.textContent = '广告合作'
+
+    const text = document.createElement('span')
+    text.className = 'ad-slot__text'
+    text.textContent = '此处预留广告位，支持图片 / 文字链 / 固定展示位合作'
+
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'ad-slot__action'
+    button.textContent = '联系合作'
+    button.addEventListener('click', () => {
+      dom.adContact.textContent = state.adContact
+      showModal(dom.adModal)
+    })
+
+    dom.adSlot.append(label, text, button)
+    return
+  }
+
+  dom.adSlot.classList.add('is-ad')
+
+  if (ad.contentType === 'I' && ad.imageData) {
+    const image = document.createElement('img')
+    image.className = 'ad-slot__image'
+    image.src = ad.imageData
+    image.alt = '广告'
+    dom.adSlot.append(image)
+  } else {
+    const label = document.createElement('span')
+    label.className = 'ad-slot__label'
+    label.textContent = '推广'
+
+    const text = document.createElement('span')
+    text.className = 'ad-slot__text'
+    text.textContent = ad.text || ''
+    dom.adSlot.append(label, text)
+  }
+
+  if (ads.length > 1) {
+    const dots = document.createElement('div')
+    dots.className = 'ad-slot__dots'
+    ads.forEach((item, index) => {
+      const dot = document.createElement('button')
+      dot.type = 'button'
+      dot.className = 'ad-slot__dot'
+      if (index === state.adIndex % ads.length) dot.classList.add('is-active')
+      dot.addEventListener('click', (event) => {
+        event.stopPropagation()
+        state.adIndex = index
+        renderAdPanel()
+        scheduleAdRotation()
+      })
+      dots.append(dot)
+    })
+    dom.adSlot.append(dots)
+  }
+
+  if (ad.linkUrl) {
+    dom.adSlot.classList.add('is-clickable')
+    dom.adSlot.onclick = () => {
+      window.desktop.reportAd({ id: ad.id, type: 'click' }).catch(() => {})
+      window.open(ad.linkUrl, '_blank')
+    }
+  }
+
+  // 每条广告每次运行只计一次曝光，避免轮播反复累加
+  if (!state.shownAdIds.has(ad.id)) {
+    state.shownAdIds.add(ad.id)
+    window.desktop.reportAd({ id: ad.id, type: 'view' }).catch(() => {})
+  }
+}
+
+/** 多条广告时每 8 秒轮播一次 */
+function scheduleAdRotation() {
+  clearInterval(state.adTimer)
+  state.adTimer = null
+  if (state.ads.length <= 1) return
+  state.adTimer = setInterval(() => {
+    state.adIndex = (state.adIndex + 1) % state.ads.length
+    renderAdPanel()
+  }, 8000)
+}
+
+async function loadAds() {
+  try {
+    state.ads = await window.desktop.getAds()
+  } catch {
+    state.ads = []
+  }
+  state.adIndex = 0
+  renderAdPanel()
+  scheduleAdRotation()
 }
 
 function renderCodes() {
@@ -532,6 +643,7 @@ async function handleSubmitCode() {
 async function refreshAll() {
   await loadData()
   if (state.user) await loadMine()
+  await loadAds()
   renderAll()
 }
 
@@ -540,6 +652,7 @@ async function bootstrap() {
   state.apiBase = config.apiBase
   state.version = config.version
   state.adContact = config.adContact || state.adContact
+  state.siteUrl = config.siteUrl || state.siteUrl
   dom.version.textContent = `v${config.version}`
   dom.aboutVersion.textContent = `版本：${config.version}`
   dom.aboutApi.textContent = `接口地址：${config.apiBase}`
@@ -553,9 +666,9 @@ async function bootstrap() {
     state.keyword = dom.searchInput.value
     renderCodes()
   })
-  dom.adContactBtn.addEventListener('click', () => {
-    dom.adContact.textContent = state.adContact
-    showModal(dom.adModal)
+  dom.registerLink.addEventListener('click', (event) => {
+    event.preventDefault()
+    window.open(`${state.siteUrl}/register`, '_blank')
   })
   dom.adCopyBtn.addEventListener('click', async () => {
     await window.desktop.copy(state.adContact)
@@ -594,6 +707,7 @@ async function bootstrap() {
 
   if (state.user) await loadMine()
   await loadData()
+  await loadAds()
 
   // 每 5 分钟自动刷新一次
   setInterval(refreshAll, 5 * 60 * 1000)

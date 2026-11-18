@@ -37,6 +37,10 @@
           <span>{{ loading ? `登录中` : `登录` }}</span>
         </el-button>
       </el-form-item>
+
+      <p class="login-register">
+        还没有账号？<router-link to="/register">立即注册</router-link>
+      </p>
     </el-form>
 
     <!--  底部  -->
@@ -124,6 +128,18 @@ if (cacheParams.password) loginForm.value.password = cacheParams.password
 </script>
 
 <style lang="scss" scoped>
+.login-register {
+  margin: -8px 0 0;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
+  text-align: center;
+
+  a {
+    color: var(--el-color-primary);
+    text-decoration: none;
+  }
+}
+
 html[data-device='mobile'] .login-container {
   --login-form-width: calc(100% - 32px);
 }

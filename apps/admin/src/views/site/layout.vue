@@ -10,6 +10,7 @@
         <nav class="site-nav">
           <router-link to="/" class="site-nav__link" :class="{ 'is-active': isHome }">首页</router-link>
           <button type="button" class="site-nav__link site-nav__link--button" @click="openDownloadPage">下载客户端</button>
+          <router-link to="/register" class="site-nav__link">注册</router-link>
           <el-button type="primary" round @click="goAdmin">进入后台</el-button>
         </nav>
       </div>

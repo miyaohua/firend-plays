@@ -594,4 +594,19 @@ INSERT INTO `sys_role_menu` VALUES ('5e2db9ff-0913-4b92-91bc-ef329619842a', 'bda
 INSERT INTO `sys_role_menu` VALUES ('5e2db9ff-0913-4b92-91bc-ef329619842a', 'c384cddd-468c-442a-912e-444a5713332f');
 INSERT INTO `sys_role_menu` VALUES ('5e2db9ff-0913-4b92-91bc-ef329619842a', 'e16b7cec-0b13-4f63-a224-5e4af8a0d2d5');
 
+-- ----------------------------
+-- Records of sys_menu（运营管理 / 广告位）
+-- ----------------------------
+INSERT INTO `sys_menu` VALUES ('2026-11-18 15:00:00', '2026-11-18 15:00:00', NULL, 'admin', 'admin', '6d29b44c-19d6-4a42-8cc1-9ed58879abc8', '0', 'operation', NULL, 'M', 'Setting', '运营管理', '1', NULL, '1', 10, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-18 15:00:00', '2026-11-18 15:00:00', NULL, 'admin', 'admin', '033643bd-5d94-4243-945e-7e447c0976fd', '6d29b44c-19d6-4a42-8cc1-9ed58879abc8', 'ad', 'ad/index', 'C', 'Image', '广告位', '1', NULL, '1', 1, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-18 15:00:00', '2026-11-18 15:00:00', NULL, 'admin', 'admin', '3a91a4c4-4948-4a61-924d-96c69b5bbc2d', '033643bd-5d94-4243-945e-7e447c0976fd', NULL, NULL, 'F', NULL, '广告查询', '1', 'ad:query', '1', 1, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-18 15:00:00', '2026-11-18 15:00:00', NULL, 'admin', 'admin', '5c5cb421-2449-4312-a3a9-f7a118e2b09c', '033643bd-5d94-4243-945e-7e447c0976fd', NULL, NULL, 'F', NULL, '广告新增', '1', 'ad:create', '1', 2, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-18 15:00:00', '2026-11-18 15:00:00', NULL, 'admin', 'admin', '17db3d77-f75f-45ef-9ae9-ec2288511707', '033643bd-5d94-4243-945e-7e447c0976fd', NULL, NULL, 'F', NULL, '广告编辑', '1', 'ad:update', '1', 3, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-18 15:00:00', '2026-11-18 15:00:00', NULL, 'admin', 'admin', '3a3f9ebd-130e-44e1-996b-b32eaf61b097', '033643bd-5d94-4243-945e-7e447c0976fd', NULL, NULL, 'F', NULL, '广告删除', '1', 'ad:delete', '1', 4, '0', '1');
+
+-- ----------------------------
+-- Records of sys_config（注册开关）
+-- ----------------------------
+INSERT INTO `sys_config` VALUES ('2026-11-18 15:00:00', '2026-11-18 15:00:00', NULL, 'admin', 'admin', '977a245d-db08-4e96-9da0-0553d9df263a', '注册开关', 'sys.account.registerEnabled', 'true', 'Y', '是否开放自助注册');
+
 SET FOREIGN_KEY_CHECKS = 1;
