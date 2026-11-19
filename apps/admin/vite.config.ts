@@ -154,6 +154,11 @@ export default defineConfig(({ mode }) => {
       cors: true,
       /** 反向代理配置（主要是开发时用来解决跨域问题） */
       proxy: {
+        // 富文本中的图片使用 /api/uploads/xxx 绝对路径，开发环境同样反代到后端
+        '/api/uploads': {
+          target: runtimeConfig.VITE_BASE_URL,
+          changeOrigin: true,
+        },
         [runtimeConfig.VITE_BASE_API]: {
           target: runtimeConfig.VITE_BASE_URL,
           changeOrigin: true,

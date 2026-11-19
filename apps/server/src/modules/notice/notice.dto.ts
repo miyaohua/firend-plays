@@ -10,7 +10,7 @@ export class CreateNoticeDto {
 
   @IsNotEmpty({ message: '公告内容不能为空' })
   @IsString()
-  @Length(1, 5000, { message: '公告内容长度不能超过 5000 个字符' })
+  @Length(1, 20000, { message: '公告内容长度不能超过 20000 个字符' })
   content: string
 
   @IsOptional()

@@ -240,8 +240,35 @@ ipcMain.handle('auth:verifyBindOld', (_event, code) => requestApi('/auth/bindPho
 /** 绑定手机号 */
 ipcMain.handle('auth:bindPhone', (_event, form) => requestApi('/auth/bindPhone', { method: 'POST', body: form, auth: true }))
 
-/** 启用中的公告（公开） */
-ipcMain.handle('notice:active', () => requestApi('/notice/active'))
+/** 启用中的公告（公开）：正文图片转 data URL，避免放宽渲染进程 CSP */
+ipcMain.handle('notice:active', async () => {
+  const notices = await requestApi('/notice/active')
+  return Promise.all(notices.map(async (notice) => ({ ...notice, content: await inlineNoticeImages(notice.content) })))
+})
+
+/** 把公告富文本中的图片地址抓回转 data URL */
+async function inlineNoticeImages(html) {
+  if (!html || !html.includes('<img')) return html
+
+  const origin = API_BASE.replace(/\/api$/, '')
+  const sources = [...new Set([...html.matchAll(/<img[^>]+src="([^"]+)"/gi)].map((match) => match[1]))]
+  let result = html
+
+  for (const source of sources) {
+    if (source.startsWith('data:')) continue
+    const url = /^https?:/i.test(source) ? source : `${origin}${source.startsWith('/') ? '' : '/'}${source}`
+    try {
+      const response = await fetch(url)
+      if (!response.ok) continue
+      const buffer = Buffer.from(await response.arrayBuffer())
+      const mime = response.headers.get('content-type') || 'image/png'
+      result = result.split(source).join(`data:${mime};base64,${buffer.toString('base64')}`)
+    } catch {
+      // 图片加载失败时保留原始地址，由渲染层忽略
+    }
+  }
+  return result
+}
 
 /** 当前广告：图片在主进程取回转 data URL，避免放宽渲染进程 CSP */
 ipcMain.handle('ad:current', async () => {

@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import sanitizeHtml from 'sanitize-html'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Equal, In, Repository } from 'typeorm'
@@ -69,6 +70,7 @@ export class NoticeService {
   public async create(createDto: CreateNoticeDto): Promise<string> {
     const entity = new NoticeEntity()
     Object.assign(entity, createDto)
+    entity.content = this.sanitizeContent(createDto.content)
     await this.noticeRepository.save(entity)
 
     await this.invalidateCache()
@@ -81,6 +83,7 @@ export class NoticeService {
     if (!entity) throw new BusinessException('公告不存在')
 
     Object.assign(entity, updateDto)
+    if (updateDto.content !== undefined) entity.content = this.sanitizeContent(updateDto.content)
     await this.noticeRepository.save(entity)
 
     await this.invalidateCache()
@@ -95,6 +98,21 @@ export class NoticeService {
     await this.noticeRepository.softDelete({ id: In(ids) })
     await this.invalidateCache()
     return '删除成功'
+  }
+
+  /** 富文本白名单清洗：仅保留展示类标签，去掉脚本、事件属性与内联样式 */
+  private sanitizeContent(content: string): string {
+    return sanitizeHtml(content, {
+      allowedTags: ['p', 'br', 'strong', 'b', 'em', 'i', 'u', 's', 'strike', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'figure', 'figcaption', 'code', 'pre', 'span', 'div'],
+      allowedAttributes: {
+        a: ['href', 'target', 'rel'],
+        img: ['src', 'alt', 'width', 'height'],
+      },
+      allowedSchemes: ['http', 'https', 'data'],
+      transformTags: {
+        a: (tagName, attribs) => ({ tagName, attribs: { ...attribs, target: '_blank', rel: 'noopener noreferrer' } }),
+      },
+    })
   }
 
   private toView(record: NoticeEntity) {

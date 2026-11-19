@@ -379,6 +379,38 @@ async function loadNotices() {
   renderNoticeBar()
 }
 
+/** 公告富文本白名单清洗：去掉脚本、事件与不在白名单内的标签/属性 */
+function sanitizeNoticeHtml(html) {
+  const allowedTags = new Set(['P', 'BR', 'STRONG', 'B', 'EM', 'I', 'U', 'S', 'STRIKE', 'H1', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'A', 'IMG', 'FIGURE', 'FIGCAPTION', 'CODE', 'PRE', 'SPAN', 'DIV'])
+  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html')
+  const root = doc.body.firstElementChild
+
+  const clean = (node) => {
+    for (const child of [...node.children]) {
+      if (!allowedTags.has(child.tagName)) {
+        child.replaceWith(...child.childNodes)
+        clean(node)
+        continue
+      }
+      const isLink = child.tagName === 'A'
+      const isImage = child.tagName === 'IMG'
+      for (const attribute of [...child.attributes]) {
+        const name = attribute.name.toLowerCase()
+        const allowed = (isLink && ['href', 'target', 'rel'].includes(name)) || (isImage && ['src', 'alt', 'width', 'height'].includes(name))
+        if (name.startsWith('on') || !allowed) {
+          child.removeAttribute(attribute.name)
+          continue
+        }
+        if ((name === 'href' || name === 'src') && !/^(https?:|data:|\/)/i.test(attribute.value)) child.removeAttribute(name)
+      }
+      clean(child)
+    }
+  }
+
+  clean(root)
+  return root.innerHTML
+}
+
 function renderNoticeBar() {
   const hasNotice = state.notices.length > 0
   dom.noticeBar.hidden = !hasNotice || state.view === 'profile'
@@ -400,9 +432,11 @@ function openNoticeModal() {
     time.className = 'notice-item__time'
     time.textContent = notice.createTime
 
-    const content = document.createElement('p')
+    const content = document.createElement('div')
     content.className = 'notice-item__content'
-    content.textContent = notice.content
+    const raw = String(notice.content || '')
+    if (/<[a-z][^>]*>/i.test(raw)) content.innerHTML = sanitizeNoticeHtml(raw)
+    else content.textContent = raw
 
     item.append(title, time, content)
     dom.noticeList.append(item)
@@ -1678,6 +1712,12 @@ async function bootstrap() {
   dom.forgotSubmit.addEventListener('click', handleForgotSave)
   dom.feedbackSubmit.addEventListener('click', handleFeedback)
   dom.noticeBar.addEventListener('click', openNoticeModal)
+  dom.noticeList.addEventListener('click', (event) => {
+    const link = event.target.closest('a')
+    if (!link) return
+    event.preventDefault()
+    if (link.href) window.open(link.href, '_blank')
+  })
   for (const button of document.querySelectorAll('[data-login-mode]')) {
     button.addEventListener('click', () => setLoginMode(button.dataset.loginMode))
   }

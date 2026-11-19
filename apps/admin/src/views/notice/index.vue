@@ -16,7 +16,7 @@
 
     <ProTable ref="tableRef" v-loading="loading" :data="list" :columns="columns" :hidden-column-keys="hiddenColumnKeys" @selection-change="handleSelectionChange">
       <template #content="{ row }">
-        <span class="notice-content" :title="row.content">{{ row.content }}</span>
+        <span class="notice-content" :title="plainText(row.content)">{{ plainText(row.content) }}</span>
       </template>
       <template #status="{ row }">
         <el-tag :type="row.status === '1' ? 'success' : 'info'">{{ row.status === '1' ? '启用' : '停用' }}</el-tag>
@@ -36,7 +36,7 @@
         </el-form-item>
 
         <el-form-item label="内容" prop="content">
-          <el-input v-model="form.content" type="textarea" :rows="7" maxlength="5000" show-word-limit placeholder="公告内容，支持换行" />
+          <RichEditor v-model="form.content" />
         </el-form-item>
 
         <el-form-item label="排序">
@@ -66,6 +66,7 @@ import type { FormInstance, FormRules } from 'element-plus'
 import { TipModal } from '@/utils'
 import type { Notice, ProSearchItem, ProTableColumn } from '@/types'
 import { NoticeRequest } from '@/api/notice/notice.request'
+import RichEditor from '@/components/RichEditor/index.vue'
 
 const loading = ref(false)
 const submitting = ref(false)
@@ -159,9 +160,22 @@ async function handleDelete(record?: Notice.NoticeItem) {
   getList()
 }
 
+function plainText(content?: string) {
+  if (!content) return ''
+  return content
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 async function handleSubmit() {
   if (!formRef.value) return
   await formRef.value.validate()
+  if (!plainText(form.content)) {
+    TipModal.msgError('请输入公告内容')
+    return
+  }
   submitting.value = true
   try {
     if (form.id) {
