@@ -1,6 +1,6 @@
-import { LoginDto, RefreshTokenDto, RegisterDto, ResetPasswordDto, SmsLoginDto, SmsSendDto } from './auth.dto'
+import { BindPhoneDto, ChangePasswordDto, LoginDto, RefreshTokenDto, RegisterDto, ResetPasswordDto, SmsLoginDto, SmsSendDto } from './auth.dto'
 import { AuthService } from './auth.service'
-import { Body, Controller, Get, Post, Req, Headers } from '@nestjs/common'
+import { Body, Controller, Get, Post, Put, Req, Headers } from '@nestjs/common'
 import { CommonConstant, CurrentUser, Public, RepeatSubmit, SkipThrottle } from '@/common'
 
 @Controller('auth')
@@ -36,6 +36,18 @@ export class AuthController {
   @Post('login/sms')
   public loginBySms(@Body() smsLoginDto: SmsLoginDto, @Req() request: ExpressRequest) {
     return this.authService.loginBySms(smsLoginDto, request)
+  }
+
+  /** 修改密码（登录态） */
+  @Put('changePassword')
+  public changePassword(@CurrentUser('userId') userId: string, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.authService.changePassword(userId, changePasswordDto)
+  }
+
+  /** 绑定手机号（登录态，需短信验证码） */
+  @Post('bindPhone')
+  public bindPhone(@CurrentUser('userId') userId: string, @Body() bindPhoneDto: BindPhoneDto) {
+    return this.authService.bindPhone(userId, bindPhoneDto)
   }
 
   /** 短信验证码重置密码（公开） */

@@ -15,6 +15,18 @@ contextBridge.exposeInMainWorld('desktop', {
   getProfile: () => ipcRenderer.invoke('auth:profile'),
   /** 我的收藏列表 */
   getFavorites: () => ipcRenderer.invoke('gun:favorites'),
+  /** 收藏的改枪码 ID 列表 */
+  getFavoriteIds: () => ipcRenderer.invoke('gun:favoriteIds'),
+  /** 收藏 / 取消收藏 */
+  toggleFavorite: (codeId) => ipcRenderer.invoke('gun:favoriteToggle', codeId),
+  /** 修改本人提交的改枪码 */
+  updateCode: (form) => ipcRenderer.invoke('gun:update', form),
+  /** 删除本人提交的改枪码 */
+  deleteCodes: (ids) => ipcRenderer.invoke('gun:delete', ids),
+  /** 修改密码 */
+  changePassword: (form) => ipcRenderer.invoke('auth:changePassword', form),
+  /** 绑定手机号 */
+  bindPhone: (form) => ipcRenderer.invoke('auth:bindPhone', form),
   /** 获取图片验证码 */
   getCaptcha: () => ipcRenderer.invoke('auth:captcha'),
   /** 登录（credentials：username / password / captcha / uuid） */

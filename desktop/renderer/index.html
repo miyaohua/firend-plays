@@ -39,6 +39,7 @@
           <div id="viewSwitch" class="view-switch" hidden>
             <button type="button" class="view-switch__item is-active" data-view="featured">精选改枪码</button>
             <button type="button" class="view-switch__item" data-view="mine">我的提交</button>
+            <button type="button" class="view-switch__item" data-view="favorite">我的收藏</button>
           </div>
         </div>
 
@@ -197,6 +198,90 @@
         <div class="modal__actions">
           <button class="button button--ghost" type="button" data-close="submitModal">取消</button>
           <button id="submitConfirm" class="button button--primary" type="button">提交</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 编辑改枪码 -->
+    <div id="editCodeModal" class="modal" hidden>
+      <div class="modal__mask" data-close="editCodeModal"></div>
+      <div class="modal__panel">
+        <h2 class="modal__title">编辑改枪码</h2>
+
+        <label class="field">
+          <span class="field__label">改枪码</span>
+          <textarea id="editCodeInput" class="field__input field__input--area" rows="3" maxlength="500"></textarea>
+        </label>
+
+        <label class="field">
+          <span class="field__label">备注</span>
+          <input id="editRemarkInput" class="field__input" type="text" maxlength="200" />
+        </label>
+
+        <p id="editError" class="form-error"></p>
+
+        <div class="modal__actions">
+          <button class="button button--ghost" type="button" data-close="editCodeModal">取消</button>
+          <button id="editSubmit" class="button button--primary" type="button">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 修改密码 -->
+    <div id="passwordModal" class="modal" hidden>
+      <div class="modal__mask" data-close="passwordModal"></div>
+      <div class="modal__panel">
+        <h2 class="modal__title">修改密码</h2>
+
+        <label class="field">
+          <span class="field__label">原密码</span>
+          <input id="oldPassword" class="field__input" type="password" autocomplete="current-password" placeholder="请输入原密码" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">新密码</span>
+          <input id="newPassword" class="field__input" type="password" autocomplete="new-password" placeholder="6-20 位，需含字母与数字" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">确认新密码</span>
+          <input id="confirmPassword" class="field__input" type="password" autocomplete="new-password" placeholder="再次输入新密码" />
+        </label>
+
+        <p id="passwordError" class="form-error"></p>
+
+        <div class="modal__actions">
+          <button class="button button--ghost" type="button" data-close="passwordModal">取消</button>
+          <button id="passwordSubmit" class="button button--primary" type="button">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 绑定手机 -->
+    <div id="bindModal" class="modal" hidden>
+      <div class="modal__mask" data-close="bindModal"></div>
+      <div class="modal__panel">
+        <h2 class="modal__title">绑定手机号</h2>
+        <p id="bindCurrent" class="modal__message"></p>
+
+        <label class="field">
+          <span class="field__label">新手机号</span>
+          <input id="bindPhone" class="field__input" type="text" maxlength="11" placeholder="请输入手机号" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">短信验证码</span>
+          <div class="sms-row">
+            <input id="bindCode" class="field__input" type="text" maxlength="6" placeholder="请输入短信验证码" />
+            <button id="bindSendBtn" class="button button--ghost button--sms" type="button">发送验证码</button>
+          </div>
+        </label>
+
+        <p id="bindError" class="form-error"></p>
+
+        <div class="modal__actions">
+          <button class="button button--ghost" type="button" data-close="bindModal">取消</button>
+          <button id="bindSubmit" class="button button--primary" type="button">绑定</button>
         </div>
       </div>
     </div>

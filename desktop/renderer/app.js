@@ -9,12 +9,15 @@ const state = {
   selectedGun: '',
   view: 'featured',
   profile: null,
+  profileTab: 'mine',
+  favorites: [],
+  favoriteIds: new Set(),
   favoriteCount: 0,
   user: null,
   captcha: null,
   loginMode: 'password',
-  smsCountdown: { login: 0, register: 0 },
-  smsTimers: { login: null, register: null },
+  smsCountdown: { login: 0, register: 0, bind: 0 },
+  smsTimers: { login: null, register: null, bind: null },
   keyword: '',
   adContact: '2542571191@qq.com',
   siteUrl: 'http://localhost:5173',
@@ -69,6 +72,24 @@ const dom = {
   passwordLoginPanel: document.getElementById('passwordLoginPanel'),
   smsLoginPanel: document.getElementById('smsLoginPanel'),
   forgotLink: document.getElementById('forgotLink'),
+  editCodeModal: document.getElementById('editCodeModal'),
+  editCodeInput: document.getElementById('editCodeInput'),
+  editRemarkInput: document.getElementById('editRemarkInput'),
+  editError: document.getElementById('editError'),
+  editSubmit: document.getElementById('editSubmit'),
+  passwordModal: document.getElementById('passwordModal'),
+  oldPassword: document.getElementById('oldPassword'),
+  newPassword: document.getElementById('newPassword'),
+  confirmPassword: document.getElementById('confirmPassword'),
+  passwordError: document.getElementById('passwordError'),
+  passwordSubmit: document.getElementById('passwordSubmit'),
+  bindModal: document.getElementById('bindModal'),
+  bindCurrent: document.getElementById('bindCurrent'),
+  bindPhone: document.getElementById('bindPhone'),
+  bindCode: document.getElementById('bindCode'),
+  bindSendBtn: document.getElementById('bindSendBtn'),
+  bindError: document.getElementById('bindError'),
+  bindSubmit: document.getElementById('bindSubmit'),
   regError: document.getElementById('regError'),
   regSubmit: document.getElementById('regSubmit'),
   submitModal: document.getElementById('submitModal'),
@@ -140,6 +161,12 @@ function closeModal(modalId) {
   if (modal) modal.hidden = true
   if (modalId === 'loginModal') clearLoginForm()
   if (modalId === 'registerModal') clearRegisterForm()
+  if (modalId === 'bindModal') {
+    dom.bindPhone.value = ''
+    dom.bindCode.value = ''
+    dom.bindError.textContent = ''
+    resetSmsCountdown('bind')
+  }
 }
 
 function clearLoginForm() {
@@ -151,6 +178,7 @@ function clearLoginForm() {
   dom.loginError.textContent = ''
   state.captcha = null
   dom.captchaImage.removeAttribute('src')
+  resetSmsCountdown('login')
 }
 
 function clearRegisterForm() {
@@ -161,6 +189,7 @@ function clearRegisterForm() {
   dom.regNickname.value = ''
   dom.regSmsCode.value = ''
   dom.regError.textContent = ''
+  resetSmsCountdown('register')
 }
 
 function featuredCountOf(dictType) {
@@ -171,6 +200,7 @@ function featuredCountOf(dictType) {
 /** 左侧分类数量：精选视角看精选数，我的提交视角看自己的数量 */
 function countOf(dictType) {
   if (state.view === 'mine') return state.mine.filter((record) => record.isMine && record.dictType === dictType).length
+  if (state.view === 'favorite') return state.favorites.filter((record) => record.dictType === dictType).length
   return featuredCountOf(dictType)
 }
 
@@ -186,6 +216,20 @@ function codesOf(dictType, gunValue) {
         remark: record.remark,
         gunLabel: record.gunLabel,
         isFeatured: record.isFeatured === '1',
+        isMine: true,
+      }))
+  }
+
+  if (state.view === 'favorite') {
+    return state.favorites
+      .filter((record) => record.dictType === dictType && (!gunValue || record.gunValue === gunValue))
+      .map((record) => ({
+        id: record.id,
+        code: record.code,
+        remark: record.remark,
+        gunLabel: record.gunLabel,
+        isFeatured: record.isFeatured === '1',
+        isMine: record.isMine,
       }))
   }
 
@@ -415,7 +459,50 @@ function createCodeCard(item) {
     }, 1500)
   })
 
-  head.append(title, copyButton)
+  const actions = document.createElement('div')
+  actions.className = 'card__actions'
+
+  // 收藏星标（登录后展示）
+  if (state.user) {
+    const favorited = state.favoriteIds.has(item.id)
+    const favoriteButton = document.createElement('button')
+    favoriteButton.type = 'button'
+    favoriteButton.className = 'card__favorite' + (favorited ? ' is-active' : '')
+    favoriteButton.textContent = favorited ? '★' : '☆'
+    favoriteButton.title = favorited ? '取消收藏' : '收藏'
+    favoriteButton.addEventListener('click', (event) => {
+      event.stopPropagation()
+      toggleFavorite(item.id)
+    })
+    actions.append(favoriteButton)
+  }
+
+  actions.append(copyButton)
+
+  // 本人投稿可编辑 / 删除
+  if (item.isMine) {
+    const editButton = document.createElement('button')
+    editButton.type = 'button'
+    editButton.className = 'card__mini'
+    editButton.textContent = '编辑'
+    editButton.addEventListener('click', (event) => {
+      event.stopPropagation()
+      openEditCode(item)
+    })
+
+    const deleteButton = document.createElement('button')
+    deleteButton.type = 'button'
+    deleteButton.className = 'card__mini card__mini--danger'
+    deleteButton.textContent = '删除'
+    deleteButton.addEventListener('click', (event) => {
+      event.stopPropagation()
+      handleDeleteCode(item)
+    })
+
+    actions.append(editButton, deleteButton)
+  }
+
+  head.append(title, actions)
 
   const codeElement = document.createElement('code')
   codeElement.className = 'card__code'
@@ -454,8 +541,12 @@ function renderCodes() {
     }
     const typeItem = state.types.find((item) => item.dictType === state.selectedType)
     const scopeText = state.selectedGun ? '该枪械' : '该分类'
-    const title = state.view === 'mine' ? '还没有提交过改枪码' : '暂无精选改枪码'
-    const description = state.view === 'mine' ? `点击右上角「提交改枪码」，为${typeItem?.dictName ?? ''}${scopeText}录入你的方案` : `${typeItem?.dictName ?? ''}${scopeText}下还没有管理员精选的方案`
+    const emptyTexts = {
+      mine: ['还没有提交过改枪码', `点击右上角「提交改枪码」，为${typeItem?.dictName ?? ''}${scopeText}录入你的方案`],
+      favorite: ['还没有收藏改枪码', '在精选列表点卡片右上角的星标即可收藏'],
+      featured: ['暂无精选改枪码', `${typeItem?.dictName ?? ''}${scopeText}下还没有管理员精选的方案`],
+    }
+    const [title, description] = emptyTexts[state.view] ?? emptyTexts.featured
     renderPlaceholder(title, description)
     return
   }
@@ -483,19 +574,28 @@ function selectGun(gunValue) {
   renderCodes()
 }
 
-function switchView(view) {
-  if (view === 'mine' && !state.user) {
+async function switchView(view) {
+  if ((view === 'mine' || view === 'favorite') && !state.user) {
     openLoginModal()
     return
   }
   state.view = view
   state.selectedGun = ''
-  // 从个人主页进入「我的提交」时，切到第一个有本人投稿的分类，避免落在空分类
+  // 进入「我的提交 / 我的收藏」时，切到第一个有内容的分类，避免落在空分类
   if (view === 'mine' && state.user) {
     const hasInCurrent = state.mine.some((record) => record.isMine && record.dictType === state.selectedType)
     if (!hasInCurrent) {
       const firstWithCode = state.types.find((typeItem) => state.mine.some((record) => record.isMine && record.dictType === typeItem.dictType))
       if (firstWithCode) state.selectedType = firstWithCode.dictType
+    }
+  }
+  if (view === 'favorite' && state.user) {
+    // 从其他视图进入收藏时先同步最新收藏数据
+    await loadFavorites()
+    const hasInCurrent = state.favorites.some((record) => record.dictType === state.selectedType)
+    if (!hasInCurrent) {
+      const firstWithFavorite = state.types.find((typeItem) => state.favorites.some((record) => record.dictType === typeItem.dictType))
+      if (firstWithFavorite) state.selectedType = firstWithFavorite.dictType
     }
   }
   for (const button of dom.viewSwitch.querySelectorAll('.view-switch__item')) {
@@ -552,11 +652,13 @@ async function openProfile() {
   try {
     // 先取资料（会重建角色/权限缓存），再并行取投稿与收藏，避免缓存未就绪被 401
     const profile = await window.desktop.getProfile()
-    const [mine, favorites] = await Promise.all([window.desktop.listMine(), window.desktop.getFavorites()])
+    const [mine, favorites, favoriteIds] = await Promise.all([window.desktop.listMine(), window.desktop.getFavorites(), window.desktop.getFavoriteIds()])
     state.profile = profile
     // 列表接口对普通用户返回「我的 ∨ 精选」，主页只统计本人投稿
     state.mine = (mine.records ?? []).filter((record) => record.isMine)
-    state.favoriteCount = Array.isArray(favorites) ? favorites.length : 0
+    state.favorites = Array.isArray(favorites) ? favorites : []
+    state.favoriteIds = new Set(Array.isArray(favoriteIds) ? favoriteIds : [])
+    state.favoriteCount = state.favorites.length
   } catch (error) {
     renderProfileError(normalizeError(error))
     return
@@ -586,53 +688,82 @@ function renderProfileError(message) {
   dom.profileView.append(wrapper)
 }
 
+/** 个人主页：横幅资料 + 统计 + 投稿/收藏切换 + 账号安全 */
 function renderProfile() {
   if (!state.profile) return
   const { user, roles = [] } = state.profile
   const nickname = user.nickname || user.username
-  const featuredCount = state.mine.filter((record) => record.isFeatured === '1').length
+  const roleLabels = roles.map((role) => (role === 'admin' ? '管理员' : role === 'common' ? '普通用户' : role))
 
   dom.profileView.replaceChildren()
 
-  // 头部
-  const header = document.createElement('div')
-  header.className = 'profile__header'
+  // ---------- 横幅 ----------
+  const banner = document.createElement('div')
+  banner.className = 'profile__banner'
+
+  const identity = document.createElement('div')
+  identity.className = 'profile__identity'
 
   const avatar = document.createElement('div')
-  avatar.className = 'profile__avatar'
+  avatar.className = 'profile__avatar profile__avatar--lg'
   avatar.textContent = String(nickname || '?').slice(0, 1).toUpperCase()
 
   const info = document.createElement('div')
+  const nameRow = document.createElement('div')
+  nameRow.className = 'profile__name-row'
   const name = document.createElement('h2')
   name.className = 'profile__name'
   name.textContent = nickname
+  nameRow.append(name)
 
-  const meta = document.createElement('p')
-  meta.className = 'profile__meta'
-  const metaParts = [`@${user.username}`]
-  if (user.phone) metaParts.push(maskPhone(user.phone))
-  if (user.createTime) metaParts.push(`加入于 ${String(user.createTime).slice(0, 10)}`)
-  meta.textContent = metaParts.join(' · ')
-
-  const roleBox = document.createElement('div')
-  roleBox.className = 'profile__roles'
-  for (const role of roles) {
-    const tag = document.createElement('span')
-    tag.className = 'profile__role'
-    tag.textContent = role === 'admin' ? '管理员' : role === 'common' ? '普通用户' : role
-    roleBox.append(tag)
+  const chips = document.createElement('div')
+  chips.className = 'profile__chips'
+  const chipTexts = [`@${user.username}`]
+  if (user.phone) chipTexts.push(maskPhone(user.phone))
+  if (user.createTime) chipTexts.push(`加入于 ${String(user.createTime).slice(0, 10)}`)
+  for (const text of chipTexts) {
+    const chip = document.createElement('span')
+    chip.className = 'profile__chip'
+    chip.textContent = text
+    chips.append(chip)
+  }
+  for (const label of roleLabels) {
+    const role = document.createElement('span')
+    role.className = 'profile__role'
+    role.textContent = label
+    chips.append(role)
   }
 
-  info.append(name, meta, roleBox)
-  header.append(avatar, info)
+  info.append(nameRow, chips)
+  identity.append(avatar, info)
 
-  // 统计
+  const tabs = document.createElement('div')
+  tabs.className = 'profile__tabs'
+  for (const tab of [
+    { key: 'mine', label: `我的投稿（${state.mine.length}）` },
+    { key: 'favorite', label: `我的收藏（${state.favorites.length}）` },
+  ]) {
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'profile__tab' + (state.profileTab === tab.key ? ' is-active' : '')
+    button.textContent = tab.label
+    button.addEventListener('click', () => {
+      state.profileTab = tab.key
+      renderProfile()
+    })
+    tabs.append(button)
+  }
+
+  banner.append(identity, tabs)
+
+  // ---------- 统计 ----------
   const stats = document.createElement('div')
   stats.className = 'profile__stats'
+  const featuredCount = state.mine.filter((record) => record.isFeatured === '1').length
   for (const stat of [
     { label: '我的投稿', value: state.mine.length },
     { label: '已精选', value: featuredCount },
-    { label: '我的收藏', value: state.favoriteCount },
+    { label: '我的收藏', value: state.favorites.length },
   ]) {
     const card = document.createElement('div')
     card.className = 'profile__stat'
@@ -646,26 +777,23 @@ function renderProfile() {
     stats.append(card)
   }
 
-  // 最近投稿
+  // ---------- 列表 ----------
   const section = document.createElement('div')
   section.className = 'profile__section'
   const sectionHead = document.createElement('div')
   sectionHead.className = 'profile__section-head'
   const sectionTitle = document.createElement('h3')
   sectionTitle.className = 'profile__section-title'
-  sectionTitle.textContent = '最近投稿'
-  const moreButton = document.createElement('button')
-  moreButton.type = 'button'
-  moreButton.className = 'button button--ghost'
-  moreButton.textContent = '查看全部'
-  moreButton.addEventListener('click', () => switchView('mine'))
-  sectionHead.append(sectionTitle, moreButton)
+  sectionTitle.textContent = state.profileTab === 'favorite' ? '我的收藏' : '我的投稿'
+  sectionHead.append(sectionTitle)
+  section.append(sectionHead)
 
-  const recent = state.mine.slice(0, 5)
-  if (recent.length) {
+  const isFavoriteTab = state.profileTab === 'favorite'
+  const records = isFavoriteTab ? state.favorites : state.mine
+  if (records.length) {
     const list = document.createElement('div')
-    list.className = 'list'
-    for (const record of recent) {
+    list.className = 'profile__list'
+    for (const record of records) {
       list.append(
         createCodeCard({
           id: record.id,
@@ -673,18 +801,58 @@ function renderProfile() {
           remark: record.remark,
           gunLabel: record.gunLabel,
           isFeatured: record.isFeatured === '1',
+          isMine: isFavoriteTab ? record.isMine : true,
         }),
       )
     }
-    section.append(sectionHead, list)
+    section.append(list)
   } else {
     const empty = document.createElement('p')
     empty.className = 'profile__meta'
-    empty.textContent = '还没有提交过改枪码'
-    section.append(sectionHead, empty)
+    empty.textContent = isFavoriteTab ? '还没有收藏改枪码，去精选列表点星标收藏吧' : '还没有提交过改枪码'
+    section.append(empty)
   }
 
-  // 操作
+  // ---------- 账号与安全 ----------
+  const security = document.createElement('div')
+  security.className = 'profile__section'
+  const securityHead = document.createElement('div')
+  securityHead.className = 'profile__section-head'
+  const securityTitle = document.createElement('h3')
+  securityTitle.className = 'profile__section-title'
+  securityTitle.textContent = '账号与安全'
+  securityHead.append(securityTitle)
+  security.append(securityHead)
+
+  const securityList = document.createElement('div')
+  securityList.className = 'profile__security'
+  const rows = [
+    { label: '修改密码', desc: '定期更换密码更安全', actionLabel: '修改', onClick: openPasswordModal },
+    { label: '绑定手机', desc: user.phone ? `当前：${maskPhone(user.phone)}` : '未绑定，绑定后可用短信登录', actionLabel: user.phone ? '更换' : '绑定', onClick: openBindModal },
+  ]
+  for (const row of rows) {
+    const rowElement = document.createElement('div')
+    rowElement.className = 'profile__row'
+    const textBox = document.createElement('div')
+    const label = document.createElement('p')
+    label.className = 'profile__row-label'
+    label.textContent = row.label
+    const desc = document.createElement('p')
+    desc.className = 'profile__row-desc'
+    desc.textContent = row.desc
+    textBox.append(label, desc)
+
+    const action = document.createElement('button')
+    action.type = 'button'
+    action.className = 'button button--ghost'
+    action.textContent = row.actionLabel
+    action.addEventListener('click', row.onClick)
+    rowElement.append(textBox, action)
+    securityList.append(rowElement)
+  }
+  security.append(securityList)
+
+  // ---------- 操作 ----------
   const actions = document.createElement('div')
   actions.className = 'profile__actions'
 
@@ -702,7 +870,172 @@ function renderProfile() {
 
   actions.append(submitButton, backButton)
 
-  dom.profileView.append(header, stats, section, actions)
+  dom.profileView.append(banner, stats, section, security, actions)
+}
+
+/* ---------------- 账号安全 ---------------- */
+
+function openPasswordModal() {
+  dom.oldPassword.value = ''
+  dom.newPassword.value = ''
+  dom.confirmPassword.value = ''
+  dom.passwordError.textContent = ''
+  showModal(dom.passwordModal)
+  dom.oldPassword.focus()
+}
+
+async function handlePasswordSave() {
+  const oldPassword = dom.oldPassword.value
+  const newPassword = dom.newPassword.value
+  const confirmPassword = dom.confirmPassword.value
+  dom.passwordError.textContent = ''
+
+  if (!oldPassword) {
+    dom.passwordError.textContent = '请输入原密码'
+    return
+  }
+  if (!/^(?=.*[A-Za-z])(?=.*\d).{6,20}$/.test(newPassword)) {
+    dom.passwordError.textContent = '新密码需 6-20 位且同时包含字母与数字'
+    return
+  }
+  if (newPassword !== confirmPassword) {
+    dom.passwordError.textContent = '两次输入的新密码不一致'
+    return
+  }
+
+  dom.passwordSubmit.disabled = true
+  try {
+    await window.desktop.changePassword({ oldPassword, newPassword })
+    closeModal('passwordModal')
+    showToast('密码修改成功')
+  } catch (error) {
+    dom.passwordError.textContent = normalizeError(error)
+  } finally {
+    dom.passwordSubmit.disabled = false
+  }
+}
+
+function openBindModal() {
+  const phone = state.profile?.user?.phone
+  dom.bindCurrent.textContent = phone ? `当前绑定：${maskPhone(phone)}，更换后旧手机号将解绑` : '当前未绑定手机号，绑定后可使用短信登录'
+  dom.bindPhone.value = ''
+  dom.bindCode.value = ''
+  dom.bindError.textContent = ''
+  resetSmsCountdown('bind')
+  showModal(dom.bindModal)
+  dom.bindPhone.focus()
+}
+
+async function handleBindSave() {
+  const phone = dom.bindPhone.value.trim()
+  const code = dom.bindCode.value.trim()
+  dom.bindError.textContent = ''
+
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    dom.bindError.textContent = '请输入正确的手机号'
+    return
+  }
+  if (!/^\d{6}$/.test(code)) {
+    dom.bindError.textContent = '请输入 6 位短信验证码'
+    return
+  }
+
+  dom.bindSubmit.disabled = true
+  try {
+    await window.desktop.bindPhone({ phone, code })
+    closeModal('bindModal')
+    showToast('手机号绑定成功')
+    if (state.view === 'profile') await openProfile()
+  } catch (error) {
+    dom.bindError.textContent = normalizeError(error)
+  } finally {
+    dom.bindSubmit.disabled = false
+  }
+}
+
+/* ---------------- 收藏 / 投稿管理 ---------------- */
+
+async function loadFavorites() {
+  if (!state.user) {
+    state.favorites = []
+    state.favoriteIds = new Set()
+    state.favoriteCount = 0
+    return
+  }
+  try {
+    const [records, ids] = await Promise.all([window.desktop.getFavorites(), window.desktop.getFavoriteIds()])
+    state.favorites = Array.isArray(records) ? records : []
+    state.favoriteIds = new Set(Array.isArray(ids) ? ids : [])
+    state.favoriteCount = state.favorites.length
+  } catch {
+    state.favorites = []
+    state.favoriteIds = new Set()
+    state.favoriteCount = 0
+  }
+}
+
+/** 收藏 / 取消收藏：更新本地状态并按当前视图重绘 */
+async function toggleFavorite(codeId) {
+  if (!state.user) {
+    openLoginModal()
+    return
+  }
+  try {
+    const result = await window.desktop.toggleFavorite(codeId)
+    if (result.favorited) state.favoriteIds.add(codeId)
+    else state.favoriteIds.delete(codeId)
+
+    showToast(result.favorited ? '已收藏' : '已取消收藏')
+    if (state.view === 'favorite' || state.view === 'profile') await loadFavorites()
+    if (state.view === 'profile') renderProfile()
+    else renderAll()
+  } catch (error) {
+    showToast(normalizeError(error))
+  }
+}
+
+/** 打开编辑改枪码弹窗 */
+function openEditCode(item) {
+  state.editingCodeId = item.id
+  dom.editCodeInput.value = item.code
+  dom.editRemarkInput.value = item.remark || ''
+  dom.editError.textContent = ''
+  showModal(dom.editCodeModal)
+  dom.editCodeInput.focus()
+}
+
+async function handleEditCode() {
+  const code = dom.editCodeInput.value.trim()
+  const remark = dom.editRemarkInput.value.trim()
+  dom.editError.textContent = ''
+  if (!code) {
+    dom.editError.textContent = '改枪码不能为空'
+    return
+  }
+  dom.editSubmit.disabled = true
+  try {
+    await window.desktop.updateCode({ id: state.editingCodeId, code, remark })
+    hideModal(dom.editCodeModal)
+    showToast('修改成功')
+    await refreshAll()
+  } catch (error) {
+    dom.editError.textContent = normalizeError(error)
+  } finally {
+    dom.editSubmit.disabled = false
+  }
+}
+
+/** 删除本人投稿（二次确认） */
+function handleDeleteCode(item) {
+  openConfirm('删除改枪码', '删除后不可恢复，确认删除这条投稿吗？', async () => {
+    try {
+      await window.desktop.deleteCodes(item.id)
+      showToast('已删除')
+      await refreshAll()
+    } catch (error) {
+      showToast(normalizeError(error))
+    }
+  })
 }
 
 async function loadMine() {
@@ -786,9 +1119,18 @@ function setLoginMode(mode) {
   dom.loginError.textContent = ''
 }
 
-/** 短信验证码倒计时：kind 为 login / register */
+/** 短信验证码目标：登录 / 注册 / 绑定手机 */
+function smsTarget(kind) {
+  const targets = {
+    login: { button: dom.smsSendBtn, phoneInput: dom.smsPhone, error: dom.loginError, scene: 'login' },
+    register: { button: dom.regSmsSendBtn, phoneInput: dom.regPhone, error: dom.regError, scene: 'register' },
+    bind: { button: dom.bindSendBtn, phoneInput: dom.bindPhone, error: dom.bindError, scene: 'bind' },
+  }
+  return targets[kind]
+}
+
 function startSmsCountdown(kind) {
-  const button = kind === 'login' ? dom.smsSendBtn : dom.regSmsSendBtn
+  const { button } = smsTarget(kind)
   clearInterval(state.smsTimers[kind])
   state.smsCountdown[kind] = 60
   button.disabled = true
@@ -796,32 +1138,38 @@ function startSmsCountdown(kind) {
   state.smsTimers[kind] = setInterval(() => {
     state.smsCountdown[kind] -= 1
     if (state.smsCountdown[kind] <= 0) {
-      clearInterval(state.smsTimers[kind])
-      state.smsTimers[kind] = null
-      button.disabled = false
-      button.textContent = '发送验证码'
+      resetSmsCountdown(kind)
     } else {
       button.textContent = `${state.smsCountdown[kind]}s`
     }
   }, 1000)
 }
 
-/** 发送短信验证码：kind 为 login / register */
+/** 关闭弹窗时一并清空倒计时，重新发送由后端 60 秒频控拦截 */
+function resetSmsCountdown(kind) {
+  const { button } = smsTarget(kind)
+  clearInterval(state.smsTimers[kind])
+  state.smsTimers[kind] = null
+  state.smsCountdown[kind] = 0
+  button.disabled = false
+  button.textContent = '发送验证码'
+}
+
+/** 发送短信验证码：kind 为 login / register / bind */
 async function sendSms(kind) {
-  const isLogin = kind === 'login'
-  const phone = (isLogin ? dom.smsPhone.value : dom.regPhone.value).trim()
-  const errorElement = isLogin ? dom.loginError : dom.regError
-  errorElement.textContent = ''
+  const { phoneInput, error, scene } = smsTarget(kind)
+  const phone = phoneInput.value.trim()
+  error.textContent = ''
   if (!/^1[3-9]\d{9}$/.test(phone)) {
-    errorElement.textContent = '请输入正确的手机号'
+    error.textContent = '请输入正确的手机号'
     return
   }
   try {
-    const result = await window.desktop.sendSms({ scene: isLogin ? 'login' : 'register', phone })
+    const result = await window.desktop.sendSms({ scene, phone })
     showToast(result.mockCode ? `验证码已发送（本地模拟：${result.mockCode}）` : '验证码已发送，请注意查收')
     startSmsCountdown(kind)
-  } catch (error) {
-    errorElement.textContent = normalizeError(error)
+  } catch (error_) {
+    error.textContent = normalizeError(error_)
   }
 }
 
@@ -846,6 +1194,7 @@ async function handleSmsLogin() {
     updateAuthUi()
     showToast(`欢迎回来，${user.nickname || user.username}`)
     await loadMine()
+    await loadFavorites()
     renderAll()
   } catch (error) {
     dom.loginError.textContent = normalizeError(error)
@@ -881,6 +1230,7 @@ async function handleLogin() {
     updateAuthUi()
     showToast(`欢迎回来，${user.nickname || user.username}`)
     await loadMine()
+    await loadFavorites()
     renderAll()
   } catch (error) {
     dom.loginError.textContent = normalizeError(error)
@@ -896,6 +1246,10 @@ function handleLogout() {
     state.user = null
     state.mine = []
     state.mineError = ''
+    state.favorites = []
+    state.favoriteIds = new Set()
+    state.favoriteCount = 0
+    state.profile = null
     state.view = 'featured'
     for (const button of dom.viewSwitch.querySelectorAll('.view-switch__item')) {
       button.classList.toggle('is-active', button.dataset.view === 'featured')
@@ -959,6 +1313,7 @@ async function handleRegister() {
     updateAuthUi()
     showToast(`欢迎加入，${user.nickname || user.username}`)
     await loadMine()
+    await loadFavorites()
     renderAll()
   } catch (error) {
     dom.regError.textContent = normalizeError(error)
@@ -1039,7 +1394,10 @@ async function handleSubmitCode() {
 
 async function refreshAll() {
   await loadData()
-  if (state.user) await loadMine()
+  if (state.user) {
+    await loadMine()
+    await loadFavorites()
+  }
   await loadAds()
   renderAll()
 }
@@ -1077,6 +1435,10 @@ async function bootstrap() {
   dom.smsSendBtn.addEventListener('click', () => sendSms('login'))
   dom.regSmsSendBtn.addEventListener('click', () => sendSms('register'))
   dom.regSubmit.addEventListener('click', handleRegister)
+  dom.editSubmit.addEventListener('click', handleEditCode)
+  dom.passwordSubmit.addEventListener('click', handlePasswordSave)
+  dom.bindSubmit.addEventListener('click', handleBindSave)
+  dom.bindSendBtn.addEventListener('click', () => sendSms('bind'))
   dom.adCopyBtn.addEventListener('click', async () => {
     await window.desktop.copy(state.adContact)
     showToast('商务邮箱已复制')
@@ -1102,6 +1464,9 @@ async function bootstrap() {
     if (event.key === 'Escape') {
       closeModal('loginModal')
       closeModal('registerModal')
+      closeModal('bindModal')
+      hideModal(dom.editCodeModal)
+      hideModal(dom.passwordModal)
       hideModal(dom.submitModal)
     }
   })

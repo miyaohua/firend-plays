@@ -154,7 +154,7 @@ ipcMain.handle('auth:login', async (_event, credentials) => {
 
 ipcMain.handle('auth:sendSms', (_event, payload = {}) => {
   const { scene, phone } = payload
-  if (!['register', 'login', 'reset'].includes(scene)) throw new Error('验证码场景不合法')
+  if (!['register', 'login', 'reset', 'bind'].includes(scene)) throw new Error('验证码场景不合法')
   if (!/^1[3-9]\d{9}$/.test(String(phone))) throw new Error('请输入正确的手机号')
   return requestApi('/auth/sms/send', { method: 'POST', body: { scene, phone } })
 })
@@ -212,6 +212,24 @@ ipcMain.handle('auth:profile', () => requestApi('/auth/getInfo', { auth: true })
 
 /** 我的收藏列表（个人主页统计用） */
 ipcMain.handle('gun:favorites', () => requestApi('/gun/code/favorite/list', { auth: true }))
+
+/** 当前用户收藏的改枪码 ID 列表 */
+ipcMain.handle('gun:favoriteIds', () => requestApi('/gun/code/favorite/ids', { auth: true }))
+
+/** 收藏 / 取消收藏 */
+ipcMain.handle('gun:favoriteToggle', (_event, codeId) => requestApi('/gun/code/favorite/toggle', { method: 'POST', body: { codeId }, auth: true }))
+
+/** 修改本人提交的改枪码 */
+ipcMain.handle('gun:update', (_event, form) => requestApi('/gun/code/update', { method: 'PUT', body: form, auth: true }))
+
+/** 删除本人提交的改枪码 */
+ipcMain.handle('gun:delete', (_event, ids) => requestApi(`/gun/code/delete?ids=${encodeURIComponent(ids)}`, { method: 'DELETE', auth: true }))
+
+/** 修改密码 */
+ipcMain.handle('auth:changePassword', (_event, form) => requestApi('/auth/changePassword', { method: 'PUT', body: form, auth: true }))
+
+/** 绑定手机号 */
+ipcMain.handle('auth:bindPhone', (_event, form) => requestApi('/auth/bindPhone', { method: 'POST', body: form, auth: true }))
 
 /** 当前广告：图片在主进程取回转 data URL，避免放宽渲染进程 CSP */
 ipcMain.handle('ad:current', async () => {

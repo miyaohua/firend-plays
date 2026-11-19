@@ -1,4 +1,4 @@
-import { LoginDto, RegisterDto, ResetPasswordDto, SmsLoginDto } from './auth.dto'
+import { BindPhoneDto, ChangePasswordDto, LoginDto, RegisterDto, ResetPasswordDto, SmsLoginDto } from './auth.dto'
 import type { AuthType } from '@/types'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
@@ -91,7 +91,7 @@ export class AuthService {
   }
 
   /** 发送短信验证码（注册 / 登录 / 重置密码） */
-  public async sendSms(scene: 'register' | 'login' | 'reset', phone: string) {
+  public async sendSms(scene: 'register' | 'login' | 'reset' | 'bind', phone: string) {
     return this.smsService.send(scene, phone)
   }
 
@@ -125,6 +125,28 @@ export class AuthService {
     this.logService.createLoginlog(request, '重置密码成功', user.id)
 
     return '密码重置成功，请使用新密码登录'
+  }
+
+  /** 修改密码：校验原密码后更新（不强制下线当前会话，其他会话不受影响） */
+  public async changePassword(userId: string, changeDto: ChangePasswordDto) {
+    const user = await this.userService.findOneById(userId)
+    if (!(await verifyPassword(changeDto.oldPassword, user.password))) throw new BusinessException('原密码不正确')
+    if (changeDto.oldPassword === changeDto.newPassword) throw new BusinessException('新密码不能与原密码相同')
+
+    user.password = await encryptPassword(changeDto.newPassword)
+    await this.userService.getRepository().save(user)
+    return '密码修改成功'
+  }
+
+  /** 绑定手机号：短信验证码校验通过后更新，手机号需未被其他账号占用 */
+  public async bindPhone(userId: string, bindDto: BindPhoneDto) {
+    await this.smsService.verify('bind', bindDto.phone, bindDto.code)
+
+    const occupied = await this.userService.getRepository().findOneBy({ phone: bindDto.phone })
+    if (occupied && occupied.id !== userId) throw new BusinessException('该手机号已被其他账号绑定')
+
+    await this.userService.getRepository().update(userId, { phone: bindDto.phone })
+    return '手机号绑定成功'
   }
 
   /** 清空指定用户的全部令牌与在线记录（改密后强制下线） */

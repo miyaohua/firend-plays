@@ -51,8 +51,8 @@ export class RegisterDto {
 
 /** 发送短信验证码 */
 export class SmsSendDto {
-  @IsIn(['register', 'login', 'reset'], { message: '验证码场景不合法' })
-  scene: 'register' | 'login' | 'reset'
+  @IsIn(['register', 'login', 'reset', 'bind'], { message: '验证码场景不合法' })
+  scene: 'register' | 'login' | 'reset' | 'bind'
 
   @IsNotEmpty({ message: '手机号不能为空' })
   @Matches(/^1[3-9]\d{9}$/, { message: '请输入正确的手机号' })
@@ -83,4 +83,25 @@ export class ResetPasswordDto {
   @IsNotEmpty({ message: '新密码不能为空' })
   @Matches(/^(?=.*[A-Za-z])(?=.*\d).{6,20}$/, { message: '密码需 6-20 位且同时包含字母与数字' })
   password: string
+}
+
+/** 修改密码（登录态） */
+export class ChangePasswordDto {
+  @IsNotEmpty({ message: '原密码不能为空' })
+  oldPassword: string
+
+  @IsNotEmpty({ message: '新密码不能为空' })
+  @Matches(/^(?=.*[A-Za-z])(?=.*\d).{6,20}$/, { message: '密码需 6-20 位且同时包含字母与数字' })
+  newPassword: string
+}
+
+/** 绑定手机号（登录态，需短信验证码） */
+export class BindPhoneDto {
+  @IsNotEmpty({ message: '手机号不能为空' })
+  @Matches(/^1[3-9]\d{9}$/, { message: '请输入正确的手机号' })
+  phone: string
+
+  @IsNotEmpty({ message: '短信验证码不能为空' })
+  @Matches(/^\d{6}$/, { message: '短信验证码为 6 位数字' })
+  code: string
 }
