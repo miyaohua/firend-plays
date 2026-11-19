@@ -554,7 +554,8 @@ async function openProfile() {
     const profile = await window.desktop.getProfile()
     const [mine, favorites] = await Promise.all([window.desktop.listMine(), window.desktop.getFavorites()])
     state.profile = profile
-    state.mine = mine.records ?? []
+    // 列表接口对普通用户返回「我的 ∨ 精选」，主页只统计本人投稿
+    state.mine = (mine.records ?? []).filter((record) => record.isMine)
     state.favoriteCount = Array.isArray(favorites) ? favorites.length : 0
   } catch (error) {
     renderProfileError(normalizeError(error))
