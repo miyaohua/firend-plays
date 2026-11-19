@@ -219,6 +219,9 @@ ipcMain.handle('gun:favoriteIds', () => requestApi('/gun/code/favorite/ids', { a
 /** 收藏 / 取消收藏 */
 ipcMain.handle('gun:favoriteToggle', (_event, codeId) => requestApi('/gun/code/favorite/toggle', { method: 'POST', body: { codeId }, auth: true }))
 
+/** 匿名反馈改枪码无效（未登录） */
+ipcMain.handle('gun:feedbackAnonymous', (_event, payload = {}) => requestApi('/gun/code/feedback/anonymous', { method: 'POST', body: payload }))
+
 /** 反馈改枪码无效 */
 ipcMain.handle('gun:feedback', (_event, payload = {}) => requestApi('/gun/code/feedback', { method: 'POST', body: payload, auth: true }))
 

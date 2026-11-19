@@ -15,7 +15,7 @@ export class GunCodeFeedbackEntity extends BaseEntity {
   @Column({ name: 'code_id', type: 'varchar', length: 36, comment: '改枪码 ID' })
   codeId: string
 
-  @Column({ name: 'user_id', type: 'varchar', length: 36, comment: '反馈用户 ID' })
+  @Column({ name: 'user_id', type: 'varchar', length: 36, nullable: true, comment: '反馈用户 ID（匿名为空）' })
   userId: string
 
   @Column({ name: 'username', type: 'varchar', length: 20, nullable: true, comment: '反馈用户账号快照' })

@@ -1,7 +1,8 @@
 import type { AuthType } from '@/types'
 import { GunCodeService } from './code.service'
-import { Body, Controller, Delete, Get, ParseArrayPipe, Post, Put, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, ParseArrayPipe, Post, Put, Query, Req } from '@nestjs/common'
 import { BusinessType, CurrentUser, Operlog, PaginationPipe, Public, RepeatSubmit, RequirePermissions, ResponseCache } from '@/common'
+import { getRequestIp } from '@/utils'
 import { CreateFeedbackDto, CreateGunCodeDto, FavoriteGunCodeDto, FeaturedGunCodeDto, HandleFeedbackDto, QueryFeedbackDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
 
 @Controller('gun/code')
@@ -85,6 +86,13 @@ export class GunCodeController {
   @Post('feedback')
   public createFeedback(@Body() createDto: CreateFeedbackDto, @CurrentUser() currentUser: AuthType.JwtPayload) {
     return this.gunCodeService.createFeedback(createDto, currentUser)
+  }
+
+  /** 匿名反馈改枪码无效（未登录可用，按 IP 去重） */
+  @Public()
+  @Post('feedback/anonymous')
+  public createAnonymousFeedback(@Body() createDto: CreateFeedbackDto, @Req() request: ExpressRequest) {
+    return this.gunCodeService.createAnonymousFeedback(createDto, getRequestIp(request))
   }
 
   /** 管理端反馈列表 */

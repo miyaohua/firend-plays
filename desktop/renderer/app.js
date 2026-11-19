@@ -1149,7 +1149,8 @@ async function handleFeedback() {
   dom.feedbackError.textContent = ''
   dom.feedbackSubmit.disabled = true
   try {
-    const message = await window.desktop.feedbackCode({ codeId: state.feedbackCodeId, reason })
+    const payload = { codeId: state.feedbackCodeId, reason }
+    const message = state.user ? await window.desktop.feedbackCode(payload) : await window.desktop.feedbackAnonymous(payload)
     closeModal('feedbackModal')
     showToast(message || '反馈已提交，感谢你的帮助')
   } catch (error) {

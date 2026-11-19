@@ -184,7 +184,31 @@ export class GunCodeService {
     return '反馈已提交，感谢你的帮助'
   }
 
-  /** 管理端反馈分页列表 */
+  /** 匿名反馈：未登录用户也可提交，按 IP + 改枪码做 5 分钟去重 */
+  public async createAnonymousFeedback(createDto: CreateFeedbackDto, ip: string): Promise<string> {
+    const record = await this.gunCodeRepository.findOneBy({ id: Equal(createDto.codeId) })
+    if (!record) throw new BusinessException('改枪码不存在')
+
+    const dedupeKey = `feedback:anon:${ip}:${createDto.codeId}`
+    const firstSubmit = await this.redisService.setnx(dedupeKey, '1')
+    if (!firstSubmit) throw new BusinessException('你刚刚已反馈过该改枪码，请等待处理')
+    await this.redisService.expire(dedupeKey, 300)
+
+    const entity = new GunCodeFeedbackEntity()
+    Object.assign(entity, {
+      codeId: record.id,
+      userId: null,
+      username: '匿名',
+      gunLabel: record.gunLabel,
+      code: record.code,
+      reason: createDto.reason || null,
+      status: '0',
+    })
+    await this.feedbackRepository.save(entity)
+    return '反馈已提交，感谢你的帮助'
+  }
+
+  /** 管理端反馈分页列表 */  /** 管理端反馈分页列表 */
   public async findFeedbackList(queryParams: QueryFeedbackDto) {
     const queryBuilder = this.feedbackRepository.createQueryBuilder('feedback')
     if (queryParams.status) queryBuilder.andWhere('feedback.status = :status', { status: queryParams.status })
