@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld('desktop', {
   deleteCodes: (ids) => ipcRenderer.invoke('gun:delete', ids),
   /** 修改密码 */
   changePassword: (form) => ipcRenderer.invoke('auth:changePassword', form),
+  /** 换绑第一步：验证原手机号 */
+  verifyBindOld: (code) => ipcRenderer.invoke('auth:verifyBindOld', code),
   /** 绑定手机号 */
   bindPhone: (form) => ipcRenderer.invoke('auth:bindPhone', form),
   /** 获取图片验证码 */

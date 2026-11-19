@@ -1,4 +1,4 @@
-import { BindPhoneDto, ChangePasswordDto, LoginDto, RefreshTokenDto, RegisterDto, ResetPasswordDto, SmsLoginDto, SmsSendDto } from './auth.dto'
+import { BindPhoneDto, ChangePasswordDto, LoginDto, RefreshTokenDto, RegisterDto, ResetPasswordDto, SmsLoginDto, SmsSendDto, VerifyBindOldDto } from './auth.dto'
 import { AuthService } from './auth.service'
 import { Body, Controller, Get, Post, Put, Req, Headers } from '@nestjs/common'
 import { CommonConstant, CurrentUser, Public, RepeatSubmit, SkipThrottle } from '@/common'
@@ -44,7 +44,13 @@ export class AuthController {
     return this.authService.changePassword(userId, uuid, changePasswordDto)
   }
 
-  /** 绑定手机号（登录态，需短信验证码） */
+  /** 换绑第一步：验证原手机号，返回一次性票据 */
+  @Post('bindPhone/verifyOld')
+  public verifyBindOld(@CurrentUser('userId') userId: string, @Body() verifyDto: VerifyBindOldDto) {
+    return this.authService.verifyBindOld(userId, verifyDto.code)
+  }
+
+  /** 绑定/更换手机号（登录态，需新手机验证码与换绑票据） */
   @Post('bindPhone')
   public bindPhone(@CurrentUser('userId') userId: string, @CurrentUser('uuid') uuid: string, @Body() bindPhoneDto: BindPhoneDto) {
     return this.authService.bindPhone(userId, uuid, bindPhoneDto)

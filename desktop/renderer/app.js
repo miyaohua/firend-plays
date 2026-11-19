@@ -10,6 +10,7 @@ const state = {
   view: 'featured',
   profile: null,
   profileTab: 'mine',
+  bindTicket: null,
   favorites: [],
   favoriteIds: new Set(),
   favoriteCount: 0,
@@ -83,6 +84,7 @@ const dom = {
   editSubmit: document.getElementById('editSubmit'),
   passwordModal: document.getElementById('passwordModal'),
   oldPassword: document.getElementById('oldPassword'),
+  oldPasswordField: document.getElementById('oldPasswordField'),
   newPassword: document.getElementById('newPassword'),
   confirmPassword: document.getElementById('confirmPassword'),
   passwordCode: document.getElementById('passwordCode'),
@@ -94,8 +96,12 @@ const dom = {
   bindModal: document.getElementById('bindModal'),
   bindTitle: document.getElementById('bindTitle'),
   bindCurrent: document.getElementById('bindCurrent'),
-  bindOldSection: document.getElementById('bindOldSection'),
   bindOldPhone: document.getElementById('bindOldPhone'),
+  bindStepOld: document.getElementById('bindStepOld'),
+  bindStepNew: document.getElementById('bindStepNew'),
+  bindOldNext: document.getElementById('bindOldNext'),
+  bindBack: document.getElementById('bindBack'),
+  bindOldError: document.getElementById('bindOldError'),
   bindOldCode: document.getElementById('bindOldCode'),
   bindOldSendBtn: document.getElementById('bindOldSendBtn'),
   bindPhone: document.getElementById('bindPhone'),
@@ -183,10 +189,12 @@ function closeModal(modalId) {
   if (modalId === 'loginModal') clearLoginForm()
   if (modalId === 'registerModal') clearRegisterForm()
   if (modalId === 'bindModal') {
+    state.bindTicket = null
     dom.bindPhone.value = ''
     dom.bindCode.value = ''
     dom.bindOldCode.value = ''
     dom.bindError.textContent = ''
+    dom.bindOldError.textContent = ''
     resetSmsCountdown('bind')
     resetSmsCountdown('bindOld')
   }
@@ -908,12 +916,13 @@ function openPasswordModal() {
   dom.confirmPassword.value = ''
   dom.passwordCode.value = ''
   dom.passwordError.textContent = ''
+  dom.oldPasswordField.hidden = Boolean(phone)
   dom.passwordSmsField.hidden = !phone
   dom.passwordHint.hidden = Boolean(phone)
-  dom.passwordHint.textContent = '当前账号未绑定手机号，修改密码仅校验原密码，建议先在「账号与安全」绑定手机。'
+  dom.passwordHint.textContent = '当前账号未绑定手机号，修改密码需校验原密码，建议先在「账号与安全」绑定手机。'
   resetSmsCountdown('password')
   showModal(dom.passwordModal)
-  dom.oldPassword.focus()
+  ;(phone ? dom.newPassword : dom.oldPassword).focus()
 }
 
 async function handlePasswordSave() {
@@ -924,7 +933,7 @@ async function handlePasswordSave() {
   const hasPhone = Boolean(state.profile?.user?.phone)
   dom.passwordError.textContent = ''
 
-  if (!oldPassword) {
+  if (!hasPhone && !oldPassword) {
     dom.passwordError.textContent = '请输入原密码'
     return
   }
@@ -943,7 +952,7 @@ async function handlePasswordSave() {
 
   dom.passwordSubmit.disabled = true
   try {
-    await window.desktop.changePassword({ oldPassword, newPassword, code })
+    await window.desktop.changePassword(hasPhone ? { newPassword, code } : { oldPassword, newPassword })
     closeModal('passwordModal')
     showToast('密码修改成功')
   } catch (error) {
@@ -955,18 +964,45 @@ async function handlePasswordSave() {
 
 function openBindModal() {
   const phone = state.profile?.user?.phone
+  state.bindTicket = null
   dom.bindTitle.textContent = phone ? '更换手机号' : '绑定手机号'
-  dom.bindCurrent.textContent = phone ? '更换手机号需要原手机与新手机双重验证' : '当前未绑定手机号，绑定后可使用短信登录'
-  dom.bindOldSection.hidden = !phone
+  dom.bindCurrent.textContent = phone ? '第 1 步：验证原手机号' : '当前未绑定手机号，绑定后可使用短信登录'
+  dom.bindStepOld.hidden = !phone
+  dom.bindStepNew.hidden = Boolean(phone)
   dom.bindOldPhone.textContent = phone ? `原手机号：${maskPhone(phone)}` : ''
   dom.bindPhone.value = ''
   dom.bindCode.value = ''
   dom.bindOldCode.value = ''
   dom.bindError.textContent = ''
+  dom.bindOldError.textContent = ''
   resetSmsCountdown('bind')
   resetSmsCountdown('bindOld')
   showModal(dom.bindModal)
   ;(phone ? dom.bindOldCode : dom.bindPhone).focus()
+}
+
+/** 换绑第一步：验证原手机号，成功后进入新手机验证 */
+async function handleVerifyBindOld() {
+  const code = dom.bindOldCode.value.trim()
+  dom.bindOldError.textContent = ''
+  if (!/^\d{6}$/.test(code)) {
+    dom.bindOldError.textContent = '请输入 6 位原手机验证码'
+    return
+  }
+  dom.bindOldNext.disabled = true
+  try {
+    const result = await window.desktop.verifyBindOld(code)
+    state.bindTicket = result.ticket
+    dom.bindStepOld.hidden = true
+    dom.bindStepNew.hidden = false
+    dom.bindTitle.textContent = '更换手机号'
+    dom.bindCurrent.textContent = '第 2 步：验证新手机号'
+    dom.bindPhone.focus()
+  } catch (error) {
+    dom.bindOldError.textContent = normalizeError(error)
+  } finally {
+    dom.bindOldNext.disabled = false
+  }
 }
 
 async function handleBindSave() {
@@ -984,14 +1020,14 @@ async function handleBindSave() {
     dom.bindError.textContent = '请输入 6 位新手机验证码'
     return
   }
-  if (oldPhone && !/^\d{6}$/.test(oldCode)) {
-    dom.bindError.textContent = '请输入 6 位原手机验证码'
+  if (oldPhone && !state.bindTicket) {
+    dom.bindError.textContent = '请先完成原手机号验证'
     return
   }
 
   dom.bindSubmit.disabled = true
   try {
-    await window.desktop.bindPhone({ phone, code, oldCode: oldPhone ? oldCode : undefined })
+    await window.desktop.bindPhone({ phone, code, ticket: oldPhone ? state.bindTicket : undefined })
     closeModal('bindModal')
     showToast(oldPhone ? '手机号更换成功' : '手机号绑定成功')
     if (state.view === 'profile') await openProfile()
@@ -1547,6 +1583,13 @@ async function bootstrap() {
   dom.passwordSubmit.addEventListener('click', handlePasswordSave)
   dom.bindSubmit.addEventListener('click', handleBindSave)
   dom.bindSendBtn.addEventListener('click', () => sendSms('bind'))
+  dom.bindOldNext.addEventListener('click', handleVerifyBindOld)
+  dom.bindBack.addEventListener('click', () => {
+    dom.bindStepOld.hidden = false
+    dom.bindStepNew.hidden = true
+    dom.bindTitle.textContent = '更换手机号'
+    dom.bindCurrent.textContent = '第 1 步：验证原手机号'
+  })
   dom.adCopyBtn.addEventListener('click', async () => {
     await window.desktop.copy(state.adContact)
     showToast('商务邮箱已复制')

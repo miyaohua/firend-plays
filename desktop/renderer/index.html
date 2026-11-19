@@ -242,7 +242,7 @@
       <div class="modal__panel">
         <h2 class="modal__title">修改密码</h2>
 
-        <label class="field">
+        <label id="oldPasswordField" class="field">
           <span class="field__label">原密码</span>
           <input id="oldPassword" class="field__input" type="password" autocomplete="current-password" placeholder="请输入原密码" />
         </label>
@@ -282,7 +282,7 @@
         <h2 id="bindTitle" class="modal__title">更换手机号</h2>
         <p id="bindCurrent" class="modal__message"></p>
 
-        <div id="bindOldSection" hidden>
+        <div id="bindStepOld" hidden>
           <p id="bindOldPhone" class="form-hint"></p>
           <label class="field">
             <span class="field__label">原手机验证码 *</span>
@@ -291,26 +291,36 @@
               <button id="bindOldSendBtn" class="button button--ghost button--sms" type="button">发送验证码</button>
             </div>
           </label>
+
+          <p id="bindOldError" class="form-error"></p>
+
+          <div class="modal__actions">
+            <button class="button button--ghost" type="button" data-close="bindModal">取消</button>
+            <button id="bindOldNext" class="button button--primary" type="button">下一步</button>
+          </div>
         </div>
 
-        <label class="field">
-          <span class="field__label">新手机号 *</span>
-          <input id="bindPhone" class="field__input" type="text" maxlength="11" placeholder="请输入新手机号" />
-        </label>
+        <div id="bindStepNew" hidden>
+          <label class="field">
+            <span class="field__label">新手机号 *</span>
+            <input id="bindPhone" class="field__input" type="text" maxlength="11" placeholder="请输入新手机号" />
+          </label>
 
-        <label class="field">
-          <span class="field__label">新手机验证码 *</span>
-          <div class="sms-row">
-            <input id="bindCode" class="field__input" type="text" maxlength="6" placeholder="请输入新手机验证码" />
-            <button id="bindSendBtn" class="button button--ghost button--sms" type="button">发送验证码</button>
+          <label class="field">
+            <span class="field__label">新手机验证码 *</span>
+            <div class="sms-row">
+              <input id="bindCode" class="field__input" type="text" maxlength="6" placeholder="请输入新手机验证码" />
+              <button id="bindSendBtn" class="button button--ghost button--sms" type="button">发送验证码</button>
+            </div>
+          </label>
+
+          <p id="bindError" class="form-error"></p>
+
+          <div class="modal__actions">
+            <button id="bindBack" class="button button--ghost" type="button">上一步</button>
+            <button class="button button--ghost" type="button" data-close="bindModal">取消</button>
+            <button id="bindSubmit" class="button button--primary" type="button">确认更换</button>
           </div>
-        </label>
-
-        <p id="bindError" class="form-error"></p>
-
-        <div class="modal__actions">
-          <button class="button button--ghost" type="button" data-close="bindModal">取消</button>
-          <button id="bindSubmit" class="button button--primary" type="button">绑定</button>
         </div>
       </div>
     </div>

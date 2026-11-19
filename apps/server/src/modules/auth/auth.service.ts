@@ -1,4 +1,4 @@
-import { BindPhoneDto, ChangePasswordDto, LoginDto, RegisterDto, ResetPasswordDto, SmsLoginDto } from './auth.dto'
+import { BindPhoneDto, ChangePasswordDto, LoginDto, RegisterDto, ResetPasswordDto, SmsLoginDto, VerifyBindOldDto } from './auth.dto'
 import type { AuthType } from '@/types'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
@@ -128,17 +128,19 @@ export class AuthService {
     return '密码重置成功，请使用新密码登录'
   }
 
-  /** 修改密码：校验原密码；已绑手机时还需当前手机验证码，成功后其他设备下线 */
+  /** 修改密码：已绑手机仅需手机验证码；未绑定手机的老账号降级为校验原密码。成功后其他设备下线 */
   public async changePassword(userId: string, currentUuid: string, changeDto: ChangePasswordDto) {
     const user = await this.userService.findOneById(userId)
-    if (!(await verifyPassword(changeDto.oldPassword, user.password))) throw new BusinessException('原密码不正确')
-    if (changeDto.oldPassword === changeDto.newPassword) throw new BusinessException('新密码不能与原密码相同')
 
-    // 已绑定手机：必须通过短信验证（未绑定手机的老账号降级为仅校验原密码）
     if (user.phone) {
+      // 已绑定手机：短信验证即身份证明，不再要求原密码
       if (!changeDto.code) throw new BusinessException('请输入手机验证码')
       await this.smsService.verify('reset', user.phone, changeDto.code)
+    } else {
+      if (!changeDto.oldPassword) throw new BusinessException('请输入原密码')
+      if (!(await verifyPassword(changeDto.oldPassword, user.password))) throw new BusinessException('原密码不正确')
     }
+    if (changeDto.oldPassword && changeDto.oldPassword === changeDto.newPassword) throw new BusinessException('新密码不能与原密码相同')
 
     user.password = await encryptPassword(changeDto.newPassword)
     await this.userService.getRepository().save(user)
@@ -146,15 +148,28 @@ export class AuthService {
     return '密码修改成功'
   }
 
-  /** 绑定/更换手机号：已绑定时需原手机验证 + 新手机验证，24 小时内只能更换一次 */
+  /** 换绑第一步：验证原手机号，成功后签发 10 分钟有效的一次性票据 */
+  public async verifyBindOld(userId: string, code: string) {
+    const user = await this.userService.findOneById(userId)
+    if (!user.phone) throw new BusinessException('当前账号未绑定手机号')
+
+    await this.smsService.verify('bindOld', user.phone, code)
+
+    const ticket = randomUUID()
+    await this.redisService.set(`user:bind:ticket:${userId}`, ticket, 'EX', 600)
+    return { ticket }
+  }
+
+  /** 换绑第二步：凭原手机验证票据 + 新手机验证码完成换绑，24 小时内只能更换一次 */
   public async bindPhone(userId: string, currentUuid: string, bindDto: BindPhoneDto) {
     const user = await this.userService.findOneById(userId)
     if (user.phone === bindDto.phone) throw new BusinessException('新手机号不能与原手机号相同')
 
-    // 已绑定旧手机：先验证旧号，防止仅拿到登录态就能换绑
+    // 已绑定旧手机：必须持有原手机验证票据，防止跳过旧号直接验证新号
     if (user.phone) {
-      if (!bindDto.oldCode) throw new BusinessException('请输入原手机号验证码')
-      await this.smsService.verify('bindOld', user.phone, bindDto.oldCode)
+      if (!bindDto.ticket) throw new BusinessException('请先验证原手机号')
+      const storedTicket = await this.redisService.get(`user:bind:ticket:${userId}`)
+      if (!storedTicket || storedTicket !== bindDto.ticket) throw new BusinessException('原手机验证已失效，请重新验证')
 
       const changedRecently = await this.redisService.get(`user:phone:changed:${userId}`)
       if (changedRecently) throw new BusinessException('24 小时内只能更换一次手机号，请稍后再试')
@@ -166,7 +181,10 @@ export class AuthService {
     if (occupied && occupied.id !== userId) throw new BusinessException('该手机号已被其他账号绑定')
 
     await this.userService.getRepository().update(userId, { phone: bindDto.phone })
-    if (user.phone) await this.redisService.set(`user:phone:changed:${userId}`, '1', 'EX', 86400)
+    if (user.phone) {
+      await this.redisService.del(`user:bind:ticket:${userId}`)
+      await this.redisService.set(`user:phone:changed:${userId}`, '1', 'EX', 86400)
+    }
     await this.revokeUserSessions(userId, currentUuid)
     return '手机号更换成功'
   }

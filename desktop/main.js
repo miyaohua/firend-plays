@@ -228,6 +228,9 @@ ipcMain.handle('gun:delete', (_event, ids) => requestApi(`/gun/code/delete?ids=$
 /** 修改密码 */
 ipcMain.handle('auth:changePassword', (_event, form) => requestApi('/auth/changePassword', { method: 'PUT', body: form, auth: true }))
 
+/** 换绑第一步：验证原手机号 */
+ipcMain.handle('auth:verifyBindOld', (_event, code) => requestApi('/auth/bindPhone/verifyOld', { method: 'POST', body: { code }, auth: true }))
+
 /** 绑定手机号 */
 ipcMain.handle('auth:bindPhone', (_event, form) => requestApi('/auth/bindPhone', { method: 'POST', body: form, auth: true }))
 

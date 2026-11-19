@@ -69,10 +69,10 @@ export class SmsLoginDto {
   @Matches(/^\d{6}$/, { message: '短信验证码为 6 位数字' })
   code: string
 
-  /** 已绑定手机时必填：原手机号验证码 */
+  /** 已绑定手机时必填：验证原手机号后签发的一次性票据 */
   @IsOptional()
-  @Matches(/^\d{6}$/, { message: '原手机验证码为 6 位数字' })
-  oldCode: string
+  @IsString({ message: '票据格式不正确' })
+  ticket?: string
 }
 
 /** 通过短信验证码重置密码 */
@@ -92,8 +92,9 @@ export class ResetPasswordDto {
 
 /** 修改密码（登录态） */
 export class ChangePasswordDto {
-  @IsNotEmpty({ message: '原密码不能为空' })
-  oldPassword: string
+  /** 未绑定手机的老账号必填；已绑定手机时改为短信验证，可不填 */
+  @IsOptional()
+  oldPassword?: string
 
   @IsNotEmpty({ message: '新密码不能为空' })
   @Matches(/^(?=.*[A-Za-z])(?=.*\d).{6,20}$/, { message: '密码需 6-20 位且同时包含字母与数字' })
@@ -115,8 +116,15 @@ export class BindPhoneDto {
   @Matches(/^\d{6}$/, { message: '短信验证码为 6 位数字' })
   code: string
 
-  /** 已绑定手机时必填：原手机号验证码 */
+  /** 已绑定手机时必填：验证原手机号后签发的一次性票据 */
   @IsOptional()
+  @IsString({ message: '票据格式不正确' })
+  ticket?: string
+}
+
+/** 验证原手机号（换绑第一步） */
+export class VerifyBindOldDto {
+  @IsNotEmpty({ message: '原手机验证码不能为空' })
   @Matches(/^\d{6}$/, { message: '原手机验证码为 6 位数字' })
-  oldCode: string
+  code: string
 }
