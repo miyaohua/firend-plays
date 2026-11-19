@@ -6,7 +6,7 @@ import { BusinessException } from '@/common'
 import { RedisService } from '@/shared/redis.service'
 
 /** 短信验证码使用场景 */
-export type SmsScene = 'register' | 'login' | 'reset' | 'bind'
+export type SmsScene = 'register' | 'login' | 'reset' | 'bind' | 'bindOld'
 
 /**
  * 阿里云短信服务
@@ -85,8 +85,9 @@ export class SmsService {
       register: this.configService.get<string>('sms.templateRegister'),
       login: this.configService.get<string>('sms.templateLogin'),
       reset: this.configService.get<string>('sms.templateReset'),
-      // 绑定手机复用「身份验证」模板
-      bind: this.configService.get<string>('sms.templateBind') || this.configService.get<string>('sms.templateLogin'),
+      // 更换手机：新号使用专用模板，原号使用「身份验证」模板
+      bind: this.configService.get<string>('sms.templateBind'),
+      bindOld: this.configService.get<string>('sms.templateBindOld') || this.configService.get<string>('sms.templateLogin'),
     }
     const template = templates[scene]
     if (!template) throw new BusinessException('短信模板未配置，请联系管理员')

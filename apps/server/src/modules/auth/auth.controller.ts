@@ -40,14 +40,14 @@ export class AuthController {
 
   /** 修改密码（登录态） */
   @Put('changePassword')
-  public changePassword(@CurrentUser('userId') userId: string, @Body() changePasswordDto: ChangePasswordDto) {
-    return this.authService.changePassword(userId, changePasswordDto)
+  public changePassword(@CurrentUser('userId') userId: string, @CurrentUser('uuid') uuid: string, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.authService.changePassword(userId, uuid, changePasswordDto)
   }
 
   /** 绑定手机号（登录态，需短信验证码） */
   @Post('bindPhone')
-  public bindPhone(@CurrentUser('userId') userId: string, @Body() bindPhoneDto: BindPhoneDto) {
-    return this.authService.bindPhone(userId, bindPhoneDto)
+  public bindPhone(@CurrentUser('userId') userId: string, @CurrentUser('uuid') uuid: string, @Body() bindPhoneDto: BindPhoneDto) {
+    return this.authService.bindPhone(userId, uuid, bindPhoneDto)
   }
 
   /** 短信验证码重置密码（公开） */

@@ -51,8 +51,8 @@ export class RegisterDto {
 
 /** 发送短信验证码 */
 export class SmsSendDto {
-  @IsIn(['register', 'login', 'reset', 'bind'], { message: '验证码场景不合法' })
-  scene: 'register' | 'login' | 'reset' | 'bind'
+  @IsIn(['register', 'login', 'reset', 'bind', 'bindOld'], { message: '验证码场景不合法' })
+  scene: 'register' | 'login' | 'reset' | 'bind' | 'bindOld'
 
   @IsNotEmpty({ message: '手机号不能为空' })
   @Matches(/^1[3-9]\d{9}$/, { message: '请输入正确的手机号' })
@@ -68,6 +68,11 @@ export class SmsLoginDto {
   @IsNotEmpty({ message: '短信验证码不能为空' })
   @Matches(/^\d{6}$/, { message: '短信验证码为 6 位数字' })
   code: string
+
+  /** 已绑定手机时必填：原手机号验证码 */
+  @IsOptional()
+  @Matches(/^\d{6}$/, { message: '原手机验证码为 6 位数字' })
+  oldCode: string
 }
 
 /** 通过短信验证码重置密码 */
@@ -93,6 +98,11 @@ export class ChangePasswordDto {
   @IsNotEmpty({ message: '新密码不能为空' })
   @Matches(/^(?=.*[A-Za-z])(?=.*\d).{6,20}$/, { message: '密码需 6-20 位且同时包含字母与数字' })
   newPassword: string
+
+  /** 绑定手机时必填（未绑定手机的老账号可不填） */
+  @IsOptional()
+  @Matches(/^\d{6}$/, { message: '短信验证码为 6 位数字' })
+  code: string
 }
 
 /** 绑定手机号（登录态，需短信验证码） */
@@ -104,4 +114,9 @@ export class BindPhoneDto {
   @IsNotEmpty({ message: '短信验证码不能为空' })
   @Matches(/^\d{6}$/, { message: '短信验证码为 6 位数字' })
   code: string
+
+  /** 已绑定手机时必填：原手机号验证码 */
+  @IsOptional()
+  @Matches(/^\d{6}$/, { message: '原手机验证码为 6 位数字' })
+  oldCode: string
 }

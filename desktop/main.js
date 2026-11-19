@@ -154,7 +154,7 @@ ipcMain.handle('auth:login', async (_event, credentials) => {
 
 ipcMain.handle('auth:sendSms', (_event, payload = {}) => {
   const { scene, phone } = payload
-  if (!['register', 'login', 'reset', 'bind'].includes(scene)) throw new Error('验证码场景不合法')
+  if (!['register', 'login', 'reset', 'bind', 'bindOld'].includes(scene)) throw new Error('验证码场景不合法')
   if (!/^1[3-9]\d{9}$/.test(String(phone))) throw new Error('请输入正确的手机号')
   return requestApi('/auth/sms/send', { method: 'POST', body: { scene, phone } })
 })

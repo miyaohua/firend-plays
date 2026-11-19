@@ -10,7 +10,7 @@
 
       <el-form v-if="mode === 'password'" ref="loginFormRef" :model="loginForm" :rules="loginRules" @submit.prevent>
         <el-form-item prop="username">
-          <el-input v-model.trim="loginForm.username" placeholder="账号" clearable>
+          <el-input v-model.trim="loginForm.username" placeholder="账号 / 手机号" clearable>
             <template #prefix>
               <SvgIcon name="User"></SvgIcon>
             </template>

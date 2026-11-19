@@ -85,15 +85,32 @@ const dom = {
   oldPassword: document.getElementById('oldPassword'),
   newPassword: document.getElementById('newPassword'),
   confirmPassword: document.getElementById('confirmPassword'),
+  passwordCode: document.getElementById('passwordCode'),
+  passwordSendBtn: document.getElementById('passwordSendBtn'),
+  passwordSmsField: document.getElementById('passwordSmsField'),
+  passwordHint: document.getElementById('passwordHint'),
   passwordError: document.getElementById('passwordError'),
   passwordSubmit: document.getElementById('passwordSubmit'),
   bindModal: document.getElementById('bindModal'),
+  bindTitle: document.getElementById('bindTitle'),
   bindCurrent: document.getElementById('bindCurrent'),
+  bindOldSection: document.getElementById('bindOldSection'),
+  bindOldPhone: document.getElementById('bindOldPhone'),
+  bindOldCode: document.getElementById('bindOldCode'),
+  bindOldSendBtn: document.getElementById('bindOldSendBtn'),
   bindPhone: document.getElementById('bindPhone'),
   bindCode: document.getElementById('bindCode'),
   bindSendBtn: document.getElementById('bindSendBtn'),
   bindError: document.getElementById('bindError'),
   bindSubmit: document.getElementById('bindSubmit'),
+  forgotModal: document.getElementById('forgotModal'),
+  forgotPhone: document.getElementById('forgotPhone'),
+  forgotCode: document.getElementById('forgotCode'),
+  forgotSendBtn: document.getElementById('forgotSendBtn'),
+  forgotPassword: document.getElementById('forgotPassword'),
+  forgotConfirm: document.getElementById('forgotConfirm'),
+  forgotError: document.getElementById('forgotError'),
+  forgotSubmit: document.getElementById('forgotSubmit'),
   regError: document.getElementById('regError'),
   regSubmit: document.getElementById('regSubmit'),
   submitModal: document.getElementById('submitModal'),
@@ -168,8 +185,19 @@ function closeModal(modalId) {
   if (modalId === 'bindModal') {
     dom.bindPhone.value = ''
     dom.bindCode.value = ''
+    dom.bindOldCode.value = ''
     dom.bindError.textContent = ''
     resetSmsCountdown('bind')
+    resetSmsCountdown('bindOld')
+  }
+  if (modalId === 'passwordModal') resetSmsCountdown('password')
+  if (modalId === 'forgotModal') {
+    dom.forgotPhone.value = ''
+    dom.forgotCode.value = ''
+    dom.forgotPassword.value = ''
+    dom.forgotConfirm.value = ''
+    dom.forgotError.textContent = ''
+    resetSmsCountdown('forgot')
   }
 }
 
@@ -874,10 +902,16 @@ function renderProfile() {
 /* ---------------- 账号安全 ---------------- */
 
 function openPasswordModal() {
+  const phone = state.profile?.user?.phone
   dom.oldPassword.value = ''
   dom.newPassword.value = ''
   dom.confirmPassword.value = ''
+  dom.passwordCode.value = ''
   dom.passwordError.textContent = ''
+  dom.passwordSmsField.hidden = !phone
+  dom.passwordHint.hidden = Boolean(phone)
+  dom.passwordHint.textContent = '当前账号未绑定手机号，修改密码仅校验原密码，建议先在「账号与安全」绑定手机。'
+  resetSmsCountdown('password')
   showModal(dom.passwordModal)
   dom.oldPassword.focus()
 }
@@ -886,6 +920,8 @@ async function handlePasswordSave() {
   const oldPassword = dom.oldPassword.value
   const newPassword = dom.newPassword.value
   const confirmPassword = dom.confirmPassword.value
+  const code = dom.passwordCode.value.trim()
+  const hasPhone = Boolean(state.profile?.user?.phone)
   dom.passwordError.textContent = ''
 
   if (!oldPassword) {
@@ -900,10 +936,14 @@ async function handlePasswordSave() {
     dom.passwordError.textContent = '两次输入的新密码不一致'
     return
   }
+  if (hasPhone && !/^\d{6}$/.test(code)) {
+    dom.passwordError.textContent = '请输入 6 位手机验证码'
+    return
+  }
 
   dom.passwordSubmit.disabled = true
   try {
-    await window.desktop.changePassword({ oldPassword, newPassword })
+    await window.desktop.changePassword({ oldPassword, newPassword, code })
     closeModal('passwordModal')
     showToast('密码修改成功')
   } catch (error) {
@@ -915,34 +955,45 @@ async function handlePasswordSave() {
 
 function openBindModal() {
   const phone = state.profile?.user?.phone
-  dom.bindCurrent.textContent = phone ? `当前绑定：${maskPhone(phone)}，更换后旧手机号将解绑` : '当前未绑定手机号，绑定后可使用短信登录'
+  dom.bindTitle.textContent = phone ? '更换手机号' : '绑定手机号'
+  dom.bindCurrent.textContent = phone ? '更换手机号需要原手机与新手机双重验证' : '当前未绑定手机号，绑定后可使用短信登录'
+  dom.bindOldSection.hidden = !phone
+  dom.bindOldPhone.textContent = phone ? `原手机号：${maskPhone(phone)}` : ''
   dom.bindPhone.value = ''
   dom.bindCode.value = ''
+  dom.bindOldCode.value = ''
   dom.bindError.textContent = ''
   resetSmsCountdown('bind')
+  resetSmsCountdown('bindOld')
   showModal(dom.bindModal)
-  dom.bindPhone.focus()
+  ;(phone ? dom.bindOldCode : dom.bindPhone).focus()
 }
 
 async function handleBindSave() {
   const phone = dom.bindPhone.value.trim()
   const code = dom.bindCode.value.trim()
+  const oldPhone = state.profile?.user?.phone
+  const oldCode = dom.bindOldCode.value.trim()
   dom.bindError.textContent = ''
 
   if (!/^1[3-9]\d{9}$/.test(phone)) {
-    dom.bindError.textContent = '请输入正确的手机号'
+    dom.bindError.textContent = '请输入正确的新手机号'
     return
   }
   if (!/^\d{6}$/.test(code)) {
-    dom.bindError.textContent = '请输入 6 位短信验证码'
+    dom.bindError.textContent = '请输入 6 位新手机验证码'
+    return
+  }
+  if (oldPhone && !/^\d{6}$/.test(oldCode)) {
+    dom.bindError.textContent = '请输入 6 位原手机验证码'
     return
   }
 
   dom.bindSubmit.disabled = true
   try {
-    await window.desktop.bindPhone({ phone, code })
+    await window.desktop.bindPhone({ phone, code, oldCode: oldPhone ? oldCode : undefined })
     closeModal('bindModal')
-    showToast('手机号绑定成功')
+    showToast(oldPhone ? '手机号更换成功' : '手机号绑定成功')
     if (state.view === 'profile') await openProfile()
   } catch (error) {
     dom.bindError.textContent = normalizeError(error)
@@ -1080,6 +1131,57 @@ async function loadData() {
   }
 }
 
+/* ---------------- 忘记密码 ---------------- */
+
+function openForgotModal() {
+  hideModal(dom.loginModal)
+  const loginValue = dom.loginUsername.value.trim()
+  dom.forgotPhone.value = /^1[3-9]\d{9}$/.test(loginValue) ? loginValue : ''
+  dom.forgotCode.value = ''
+  dom.forgotPassword.value = ''
+  dom.forgotConfirm.value = ''
+  dom.forgotError.textContent = ''
+  resetSmsCountdown('forgot')
+  showModal(dom.forgotModal)
+  dom.forgotPhone.focus()
+}
+
+async function handleForgotSave() {
+  const phone = dom.forgotPhone.value.trim()
+  const code = dom.forgotCode.value.trim()
+  const password = dom.forgotPassword.value
+  const confirmPassword = dom.forgotConfirm.value
+  dom.forgotError.textContent = ''
+
+  if (!/^1[3-9]\d{9}$/.test(phone)) {
+    dom.forgotError.textContent = '请输入正确的手机号'
+    return
+  }
+  if (!/^\d{6}$/.test(code)) {
+    dom.forgotError.textContent = '请输入 6 位短信验证码'
+    return
+  }
+  if (!/^(?=.*[A-Za-z])(?=.*\d).{6,20}$/.test(password)) {
+    dom.forgotError.textContent = '新密码需 6-20 位且同时包含字母与数字'
+    return
+  }
+  if (password !== confirmPassword) {
+    dom.forgotError.textContent = '两次输入的新密码不一致'
+    return
+  }
+
+  dom.forgotSubmit.disabled = true
+  try {
+    await window.desktop.resetPassword({ phone, code, password })
+    closeModal('forgotModal')
+    showToast('密码已重置，请使用新密码登录')
+  } catch (error) {
+    dom.forgotError.textContent = normalizeError(error)
+  } finally {
+    dom.forgotSubmit.disabled = false
+  }
+}
+
 /* ---------------- 登录 ---------------- */
 
 async function refreshCaptcha() {
@@ -1119,10 +1221,14 @@ function setLoginMode(mode) {
 
 /** 短信验证码目标：登录 / 注册 / 绑定手机 */
 function smsTarget(kind) {
+  const profilePhone = () => state.profile?.user?.phone ?? ''
   const targets = {
-    login: { button: dom.smsSendBtn, phoneInput: dom.smsPhone, error: dom.loginError, scene: 'login' },
-    register: { button: dom.regSmsSendBtn, phoneInput: dom.regPhone, error: dom.regError, scene: 'register' },
-    bind: { button: dom.bindSendBtn, phoneInput: dom.bindPhone, error: dom.bindError, scene: 'bind' },
+    login: { button: dom.smsSendBtn, error: dom.loginError, scene: 'login', phone: () => dom.smsPhone.value.trim() },
+    register: { button: dom.regSmsSendBtn, error: dom.regError, scene: 'register', phone: () => dom.regPhone.value.trim() },
+    bind: { button: dom.bindSendBtn, error: dom.bindError, scene: 'bind', phone: () => dom.bindPhone.value.trim() },
+    bindOld: { button: dom.bindOldSendBtn, error: dom.bindError, scene: 'bindOld', phone: profilePhone },
+    password: { button: dom.passwordSendBtn, error: dom.passwordError, scene: 'reset', phone: profilePhone },
+    forgot: { button: dom.forgotSendBtn, error: dom.forgotError, scene: 'reset', phone: () => dom.forgotPhone.value.trim() },
   }
   return targets[kind]
 }
@@ -1155,15 +1261,15 @@ function resetSmsCountdown(kind) {
 
 /** 发送短信验证码：kind 为 login / register / bind */
 async function sendSms(kind) {
-  const { phoneInput, error, scene } = smsTarget(kind)
-  const phone = phoneInput.value.trim()
+  const { error, scene, phone } = smsTarget(kind)
+  const phoneValue = phone()
   error.textContent = ''
-  if (!/^1[3-9]\d{9}$/.test(phone)) {
+  if (!/^1[3-9]\d{9}$/.test(phoneValue)) {
     error.textContent = '请输入正确的手机号'
     return
   }
   try {
-    const result = await window.desktop.sendSms({ scene, phone })
+    const result = await window.desktop.sendSms({ scene, phone: phoneValue })
     showToast(result.mockCode ? `验证码已发送（本地模拟：${result.mockCode}）` : '验证码已发送，请注意查收')
     startSmsCountdown(kind)
   } catch (error_) {
@@ -1425,8 +1531,12 @@ async function bootstrap() {
   })
   dom.forgotLink.addEventListener('click', (event) => {
     event.preventDefault()
-    window.open(`${state.siteUrl}/reset-password`, '_blank')
+    openForgotModal()
   })
+  dom.passwordSendBtn.addEventListener('click', () => sendSms('password'))
+  dom.bindOldSendBtn.addEventListener('click', () => sendSms('bindOld'))
+  dom.forgotSendBtn.addEventListener('click', () => sendSms('forgot'))
+  dom.forgotSubmit.addEventListener('click', handleForgotSave)
   for (const button of document.querySelectorAll('[data-login-mode]')) {
     button.addEventListener('click', () => setLoginMode(button.dataset.loginMode))
   }
@@ -1461,8 +1571,9 @@ async function bootstrap() {
       closeModal('loginModal')
       closeModal('registerModal')
       closeModal('bindModal')
+      closeModal('passwordModal')
+      closeModal('forgotModal')
       hideModal(dom.editCodeModal)
-      hideModal(dom.passwordModal)
       hideModal(dom.submitModal)
     }
   })

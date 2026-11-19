@@ -1079,3 +1079,11 @@ body {
 .profile__back:hover {
   color: #2563eb;
 }
+
+/* 表单说明文字 */
+.form-hint {
+  margin: -6px 0 14px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #9ca3af;
+}

@@ -50,9 +50,10 @@ export class AuthService {
       // 2. 校验验证码是否正确（参数开关关闭时跳过；开关状态与登录页读同一参数，缺失默认开启）
       const captchaEnabled = await this.sysConfigService.getBooleanConfig(CommonConstant.CAPTCHA_ENABLED_CONFIG_KEY, true)
       if (captchaEnabled) await this.captchaService.validate(uuid, captcha)
-      // 3. 查询用户
-      const user = await this.userService.getRepository().findOneBy({ username, status: CommonConstant.STATUS_NORMAL })
-      if (!user) throw new BusinessException(`该账号不存在或已停用`)
+      // 3. 查询用户：支持「账号」或「手机号」作为登录标识
+      const isPhoneLogin = /^1[3-9]\d{9}$/.test(username)
+      const user = await this.userService.getRepository().findOneBy(isPhoneLogin ? { phone: username, status: CommonConstant.STATUS_NORMAL } : { username, status: CommonConstant.STATUS_NORMAL })
+      if (!user) throw new BusinessException('账号或密码错误')
       const { id: userId, password: hashPassword } = user
       // 4. 校验密码是否正确（错误计入失败次数，达阈值锁定账号）
       if (!(await verifyPassword(password, hashPassword))) {
@@ -91,7 +92,7 @@ export class AuthService {
   }
 
   /** 发送短信验证码（注册 / 登录 / 重置密码） */
-  public async sendSms(scene: 'register' | 'login' | 'reset' | 'bind', phone: string) {
+  public async sendSms(scene: 'register' | 'login' | 'reset' | 'bind' | 'bindOld', phone: string) {
     return this.smsService.send(scene, phone)
   }
 
@@ -127,34 +128,56 @@ export class AuthService {
     return '密码重置成功，请使用新密码登录'
   }
 
-  /** 修改密码：校验原密码后更新（不强制下线当前会话，其他会话不受影响） */
-  public async changePassword(userId: string, changeDto: ChangePasswordDto) {
+  /** 修改密码：校验原密码；已绑手机时还需当前手机验证码，成功后其他设备下线 */
+  public async changePassword(userId: string, currentUuid: string, changeDto: ChangePasswordDto) {
     const user = await this.userService.findOneById(userId)
     if (!(await verifyPassword(changeDto.oldPassword, user.password))) throw new BusinessException('原密码不正确')
     if (changeDto.oldPassword === changeDto.newPassword) throw new BusinessException('新密码不能与原密码相同')
 
+    // 已绑定手机：必须通过短信验证（未绑定手机的老账号降级为仅校验原密码）
+    if (user.phone) {
+      if (!changeDto.code) throw new BusinessException('请输入手机验证码')
+      await this.smsService.verify('reset', user.phone, changeDto.code)
+    }
+
     user.password = await encryptPassword(changeDto.newPassword)
     await this.userService.getRepository().save(user)
+    await this.revokeUserSessions(userId, currentUuid)
     return '密码修改成功'
   }
 
-  /** 绑定手机号：短信验证码校验通过后更新，手机号需未被其他账号占用 */
-  public async bindPhone(userId: string, bindDto: BindPhoneDto) {
+  /** 绑定/更换手机号：已绑定时需原手机验证 + 新手机验证，24 小时内只能更换一次 */
+  public async bindPhone(userId: string, currentUuid: string, bindDto: BindPhoneDto) {
+    const user = await this.userService.findOneById(userId)
+    if (user.phone === bindDto.phone) throw new BusinessException('新手机号不能与原手机号相同')
+
+    // 已绑定旧手机：先验证旧号，防止仅拿到登录态就能换绑
+    if (user.phone) {
+      if (!bindDto.oldCode) throw new BusinessException('请输入原手机号验证码')
+      await this.smsService.verify('bindOld', user.phone, bindDto.oldCode)
+
+      const changedRecently = await this.redisService.get(`user:phone:changed:${userId}`)
+      if (changedRecently) throw new BusinessException('24 小时内只能更换一次手机号，请稍后再试')
+    }
+
     await this.smsService.verify('bind', bindDto.phone, bindDto.code)
 
     const occupied = await this.userService.getRepository().findOneBy({ phone: bindDto.phone })
     if (occupied && occupied.id !== userId) throw new BusinessException('该手机号已被其他账号绑定')
 
     await this.userService.getRepository().update(userId, { phone: bindDto.phone })
-    return '手机号绑定成功'
+    if (user.phone) await this.redisService.set(`user:phone:changed:${userId}`, '1', 'EX', 86400)
+    await this.revokeUserSessions(userId, currentUuid)
+    return '手机号更换成功'
   }
 
-  /** 清空指定用户的全部令牌与在线记录（改密后强制下线） */
-  private async revokeUserSessions(userId: string): Promise<void> {
+  /** 清空指定用户的其他会话（keepUuid 为当前会话，传空表示全部下线） */
+  private async revokeUserSessions(userId: string, keepUuid?: string): Promise<void> {
     const patterns = [`${RedisConstant.ACCESS_TOKEN_KEY}:${userId}:*`, `${RedisConstant.REFRESH_TOKEN_KEY}:${userId}:*`, `${RedisConstant.ADMIN_USER_ONLINE_KEY}:${userId}:*`]
     for (const pattern of patterns) {
       const keys = await this.redisService.scan(pattern)
-      if (keys.length) await this.redisService.del(...keys)
+      const removable = keepUuid ? keys.filter((key) => !key.endsWith(`:${keepUuid}`)) : keys
+      if (removable.length) await this.redisService.del(...removable)
     }
   }
 
