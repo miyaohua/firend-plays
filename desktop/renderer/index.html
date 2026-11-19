@@ -18,9 +18,17 @@
         <button id="refresh" class="button button--ghost" type="button">刷新</button>
         <button id="loginBtn" class="button button--primary" type="button">登录</button>
         <div id="userBox" class="user-box" hidden>
-          <button id="userName" class="user-name" type="button" title="个人主页"></button>
-          <button id="submitBtn" class="button button--primary" type="button">提交改枪码</button>
-          <button id="logoutBtn" class="button button--ghost" type="button">退出</button>
+          <button id="userMenuBtn" class="user-menu" type="button">
+            <span id="userAvatar" class="user-avatar"></span>
+            <span id="userName" class="user-name"></span>
+            <span class="user-caret">▾</span>
+          </button>
+
+          <div id="userMenu" class="user-dropdown" hidden>
+            <button id="menuProfile" class="user-dropdown__item" type="button">个人主页</button>
+            <button id="menuSubmit" class="user-dropdown__item" type="button">提交改枪码</button>
+            <button id="menuLogout" class="user-dropdown__item user-dropdown__item--danger" type="button">退出登录</button>
+          </div>
         </div>
       </div>
     </header>

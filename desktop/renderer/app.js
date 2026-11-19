@@ -48,8 +48,12 @@ const dom = {
   loginBtn: document.getElementById('loginBtn'),
   userBox: document.getElementById('userBox'),
   userName: document.getElementById('userName'),
-  submitBtn: document.getElementById('submitBtn'),
-  logoutBtn: document.getElementById('logoutBtn'),
+  userMenuBtn: document.getElementById('userMenuBtn'),
+  userAvatar: document.getElementById('userAvatar'),
+  userMenu: document.getElementById('userMenu'),
+  menuProfile: document.getElementById('menuProfile'),
+  menuSubmit: document.getElementById('menuSubmit'),
+  menuLogout: document.getElementById('menuLogout'),
   loginModal: document.getElementById('loginModal'),
   loginUsername: document.getElementById('loginUsername'),
   loginPassword: document.getElementById('loginPassword'),
@@ -625,7 +629,12 @@ function updateAuthUi() {
   const loggedIn = Boolean(state.user)
   dom.loginBtn.hidden = loggedIn
   dom.userBox.hidden = !loggedIn
-  if (loggedIn) dom.userName.textContent = state.user.nickname || state.user.username
+  if (loggedIn) {
+    dom.userName.textContent = state.user.nickname || state.user.username
+    dom.userAvatar.textContent = String(state.user.nickname || state.user.username || '?').slice(0, 1).toUpperCase()
+  } else {
+    dom.userMenu.hidden = true
+  }
   if (!loggedIn && state.view === 'profile') {
     state.view = 'featured'
     state.profile = null
@@ -696,6 +705,13 @@ function renderProfile() {
   const roleLabels = roles.map((role) => (role === 'admin' ? '管理员' : role === 'common' ? '普通用户' : role))
 
   dom.profileView.replaceChildren()
+
+  // ---------- 返回 ----------
+  const back = document.createElement('button')
+  back.type = 'button'
+  back.className = 'profile__back'
+  back.textContent = '← 返回精选'
+  back.addEventListener('click', () => switchView('featured'))
 
   // ---------- 横幅 ----------
   const banner = document.createElement('div')
@@ -852,25 +868,7 @@ function renderProfile() {
   }
   security.append(securityList)
 
-  // ---------- 操作 ----------
-  const actions = document.createElement('div')
-  actions.className = 'profile__actions'
-
-  const submitButton = document.createElement('button')
-  submitButton.type = 'button'
-  submitButton.className = 'button button--primary'
-  submitButton.textContent = '提交改枪码'
-  submitButton.addEventListener('click', openSubmitModal)
-
-  const backButton = document.createElement('button')
-  backButton.type = 'button'
-  backButton.className = 'button button--ghost'
-  backButton.textContent = '返回精选'
-  backButton.addEventListener('click', () => switchView('featured'))
-
-  actions.append(submitButton, backButton)
-
-  dom.profileView.append(banner, stats, section, security, actions)
+  dom.profileView.append(back, banner, stats, section, security)
 }
 
 /* ---------------- 账号安全 ---------------- */
@@ -1445,8 +1443,6 @@ async function bootstrap() {
   })
   dom.confirmOk.addEventListener('click', runConfirmAction)
   dom.loginBtn.addEventListener('click', openLoginModal)
-  dom.logoutBtn.addEventListener('click', handleLogout)
-  dom.submitBtn.addEventListener('click', openSubmitModal)
   dom.captchaImage.addEventListener('click', refreshCaptcha)
   dom.loginSubmit.addEventListener('click', handleLogin)
   dom.submitConfirm.addEventListener('click', handleSubmitCode)
@@ -1471,7 +1467,25 @@ async function bootstrap() {
     }
   })
 
-  dom.userName.addEventListener('click', openProfile)
+  dom.userMenuBtn.addEventListener('click', (event) => {
+    event.stopPropagation()
+    dom.userMenu.hidden = !dom.userMenu.hidden
+  })
+  dom.menuProfile.addEventListener('click', () => {
+    dom.userMenu.hidden = true
+    openProfile()
+  })
+  dom.menuSubmit.addEventListener('click', () => {
+    dom.userMenu.hidden = true
+    openSubmitModal()
+  })
+  dom.menuLogout.addEventListener('click', () => {
+    dom.userMenu.hidden = true
+    handleLogout()
+  })
+  document.addEventListener('click', (event) => {
+    if (!dom.userMenu.hidden && !dom.userBox.contains(event.target)) dom.userMenu.hidden = true
+  })
 
   // 登录框内回车直接提交
   for (const input of [dom.loginUsername, dom.loginPassword, dom.loginCaptcha]) {
