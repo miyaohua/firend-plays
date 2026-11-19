@@ -11,6 +11,7 @@ const state = {
   profile: null,
   profileTab: 'mine',
   bindTicket: null,
+  feedbackCodeId: null,
   favorites: [],
   favoriteIds: new Set(),
   favoriteCount: 0,
@@ -117,6 +118,11 @@ const dom = {
   forgotConfirm: document.getElementById('forgotConfirm'),
   forgotError: document.getElementById('forgotError'),
   forgotSubmit: document.getElementById('forgotSubmit'),
+  feedbackModal: document.getElementById('feedbackModal'),
+  feedbackTarget: document.getElementById('feedbackTarget'),
+  feedbackReason: document.getElementById('feedbackReason'),
+  feedbackError: document.getElementById('feedbackError'),
+  feedbackSubmit: document.getElementById('feedbackSubmit'),
   regError: document.getElementById('regError'),
   regSubmit: document.getElementById('regSubmit'),
   submitModal: document.getElementById('submitModal'),
@@ -199,6 +205,11 @@ function closeModal(modalId) {
     resetSmsCountdown('bindOld')
   }
   if (modalId === 'passwordModal') resetSmsCountdown('password')
+  if (modalId === 'feedbackModal') {
+    state.feedbackCodeId = null
+    dom.feedbackReason.value = ''
+    dom.feedbackError.textContent = ''
+  }
   if (modalId === 'forgotModal') {
     dom.forgotPhone.value = ''
     dom.forgotCode.value = ''
@@ -540,6 +551,19 @@ function createCodeCard(item) {
     })
 
     actions.append(editButton, deleteButton)
+  }
+
+  // 精选视图允许反馈「改枪码无效」
+  if (state.view === 'featured' && !item.isMine) {
+    const feedbackButton = document.createElement('button')
+    feedbackButton.type = 'button'
+    feedbackButton.className = 'card__mini'
+    feedbackButton.textContent = '反馈无效'
+    feedbackButton.addEventListener('click', (event) => {
+      event.stopPropagation()
+      openFeedback(item)
+    })
+    actions.append(feedbackButton)
   }
 
   head.append(title, actions)
@@ -1099,14 +1123,39 @@ async function handleEditCode() {
   }
   dom.editSubmit.disabled = true
   try {
-    await window.desktop.updateCode({ id: state.editingCodeId, code, remark })
+    const message = await window.desktop.updateCode({ id: state.editingCodeId, code, remark })
     hideModal(dom.editCodeModal)
-    showToast('修改成功')
+    showToast(message || '修改成功')
     await refreshAll()
   } catch (error) {
     dom.editError.textContent = normalizeError(error)
   } finally {
     dom.editSubmit.disabled = false
+  }
+}
+
+/** 打开反馈弹窗 */
+function openFeedback(item) {
+  state.feedbackCodeId = item.id
+  dom.feedbackTarget.textContent = `${item.gunLabel} · ${item.code}`
+  dom.feedbackReason.value = ''
+  dom.feedbackError.textContent = ''
+  showModal(dom.feedbackModal)
+  dom.feedbackReason.focus()
+}
+
+async function handleFeedback() {
+  const reason = dom.feedbackReason.value.trim()
+  dom.feedbackError.textContent = ''
+  dom.feedbackSubmit.disabled = true
+  try {
+    const message = await window.desktop.feedbackCode({ codeId: state.feedbackCodeId, reason })
+    closeModal('feedbackModal')
+    showToast(message || '反馈已提交，感谢你的帮助')
+  } catch (error) {
+    dom.feedbackError.textContent = normalizeError(error)
+  } finally {
+    dom.feedbackSubmit.disabled = false
   }
 }
 
@@ -1578,6 +1627,7 @@ async function bootstrap() {
   dom.bindOldSendBtn.addEventListener('click', () => sendSms('bindOld'))
   dom.forgotSendBtn.addEventListener('click', () => sendSms('forgot'))
   dom.forgotSubmit.addEventListener('click', handleForgotSave)
+  dom.feedbackSubmit.addEventListener('click', handleFeedback)
   for (const button of document.querySelectorAll('[data-login-mode]')) {
     button.addEventListener('click', () => setLoginMode(button.dataset.loginMode))
   }
@@ -1621,6 +1671,7 @@ async function bootstrap() {
       closeModal('bindModal')
       closeModal('passwordModal')
       closeModal('forgotModal')
+      closeModal('feedbackModal')
       hideModal(dom.editCodeModal)
       hideModal(dom.submitModal)
     }

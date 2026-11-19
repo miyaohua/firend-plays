@@ -103,3 +103,27 @@ export interface Statistics {
   types: StatisticsType[]
 }
 
+
+/** 改枪码无效反馈 */
+export interface FeedbackItem {
+  id: string
+  codeId: string
+  username: string | null
+  gunLabel: string | null
+  code: string | null
+  reason: string | null
+  /** 状态：0 待处理 / 1 已处理 / 2 已忽略 */
+  status: string
+  handleBy: string | null
+  handleTime: string | null
+  handleRemark: string | null
+  createTime: string
+}
+
+/** 反馈分页查询 */
+export interface FeedbackQuery {
+  pageNo: number
+  pageSize: number
+  keyword?: string
+  status?: string
+}

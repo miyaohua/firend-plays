@@ -364,6 +364,27 @@
       </div>
     </div>
 
+    <!-- 反馈改枪码无效 -->
+    <div id="feedbackModal" class="modal" hidden>
+      <div class="modal__mask" data-close="feedbackModal"></div>
+      <div class="modal__panel">
+        <h2 class="modal__title">反馈改枪码无效</h2>
+        <p id="feedbackTarget" class="form-hint"></p>
+
+        <label class="field">
+          <span class="field__label">问题说明（选填）</span>
+          <textarea id="feedbackReason" class="field__input field__input--area" rows="3" maxlength="200" placeholder="例如：复制后无效 / 无法导入 / 与描述不符"></textarea>
+        </label>
+
+        <p id="feedbackError" class="form-error"></p>
+
+        <div class="modal__actions">
+          <button class="button button--ghost" type="button" data-close="feedbackModal">取消</button>
+          <button id="feedbackSubmit" class="button button--primary" type="button">提交反馈</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 通用确认弹窗（退出登录等） -->
     <div id="confirmModal" class="modal" hidden>
       <div class="modal__mask" data-close="confirmModal"></div>

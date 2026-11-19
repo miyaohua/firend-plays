@@ -32,6 +32,16 @@ export class GunCodeRequest {
     return request.put('/gun/code/featured', data)
   }
 
+  /** 反馈列表 */
+  static findFeedbackList(params: Gun.FeedbackQuery): Promise<PaginationResult<Gun.FeedbackItem>> {
+    return request.get('/gun/code/feedback/list', { params })
+  }
+
+  /** 处理反馈 */
+  static handleFeedback(data: { id: string; status: string; remark?: string }): Promise<string> {
+    return request.put('/gun/code/feedback/handle', data)
+  }
+
   /** 公开数据概览（无需登录） */
   static findStatistics(): Promise<Gun.Statistics> {
     return request.get('/gun/code/statistics')

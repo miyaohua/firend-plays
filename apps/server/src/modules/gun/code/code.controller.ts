@@ -2,7 +2,7 @@ import type { AuthType } from '@/types'
 import { GunCodeService } from './code.service'
 import { Body, Controller, Delete, Get, ParseArrayPipe, Post, Put, Query } from '@nestjs/common'
 import { BusinessType, CurrentUser, Operlog, PaginationPipe, Public, RepeatSubmit, RequirePermissions, ResponseCache } from '@/common'
-import { CreateGunCodeDto, FavoriteGunCodeDto, FeaturedGunCodeDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
+import { CreateFeedbackDto, CreateGunCodeDto, FavoriteGunCodeDto, FeaturedGunCodeDto, HandleFeedbackDto, QueryFeedbackDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
 
 @Controller('gun/code')
 export class GunCodeController {
@@ -79,6 +79,27 @@ export class GunCodeController {
   @Operlog({ title: '改枪码', businessType: BusinessType.DELETE })
   public delete(@Query('ids', new ParseArrayPipe()) ids: string[], @CurrentUser() currentUser: AuthType.JwtPayload) {
     return this.gunCodeService.delete(ids, currentUser)
+  }
+
+  /** 提交「改枪码无效」反馈（登录即可） */
+  @Post('feedback')
+  public createFeedback(@Body() createDto: CreateFeedbackDto, @CurrentUser() currentUser: AuthType.JwtPayload) {
+    return this.gunCodeService.createFeedback(createDto, currentUser)
+  }
+
+  /** 管理端反馈列表 */
+  @Get('feedback/list')
+  @RequirePermissions(['gun:feedback:query'])
+  public findFeedbackList(@Query(PaginationPipe) queryParams: QueryFeedbackDto) {
+    return this.gunCodeService.findFeedbackList(queryParams)
+  }
+
+  /** 处理反馈 */
+  @Put('feedback/handle')
+  @RequirePermissions(['gun:feedback:handle'])
+  @Operlog({ title: '改枪码反馈', businessType: BusinessType.UPDATE })
+  public handleFeedback(@Body() handleDto: HandleFeedbackDto, @CurrentUser() currentUser: AuthType.JwtPayload) {
+    return this.gunCodeService.handleFeedback(handleDto, currentUser)
   }
 
   /** 精选 / 取消精选（仅超管） */

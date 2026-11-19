@@ -19,6 +19,8 @@ contextBridge.exposeInMainWorld('desktop', {
   getFavoriteIds: () => ipcRenderer.invoke('gun:favoriteIds'),
   /** 收藏 / 取消收藏 */
   toggleFavorite: (codeId) => ipcRenderer.invoke('gun:favoriteToggle', codeId),
+  /** 反馈改枪码无效 */
+  feedbackCode: (payload) => ipcRenderer.invoke('gun:feedback', payload),
   /** 修改本人提交的改枪码 */
   updateCode: (form) => ipcRenderer.invoke('gun:update', form),
   /** 删除本人提交的改枪码 */

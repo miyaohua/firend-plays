@@ -5,8 +5,8 @@ import type { AuthType } from '@/types'
 import { RedisService } from '@/shared/redis.service'
 import { InjectRepository } from '@nestjs/typeorm'
 import { UserService } from '../../system/user/user.service'
-import { BusinessException, CommonConstant, DictDataEntity, DictTypeEntity, GunCodeEntity, GunCodeFavoriteEntity, RbacConstant, RedisConstant } from '@/common'
-import { CreateGunCodeDto, FeaturedGunCodeDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
+import { BusinessException, CommonConstant, DictDataEntity, DictTypeEntity, GunCodeEntity, GunCodeFavoriteEntity, GunCodeFeedbackEntity, RbacConstant, RedisConstant } from '@/common'
+import { CreateFeedbackDto, CreateGunCodeDto, FeaturedGunCodeDto, HandleFeedbackDto, QueryFeedbackDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
 
 /** 公开精选接口返回的分组结构 */
 export interface FeaturedGroupView {
@@ -59,6 +59,7 @@ export class GunCodeService {
   constructor(
     @InjectRepository(GunCodeEntity) private readonly gunCodeRepository: Repository<GunCodeEntity>,
     @InjectRepository(GunCodeFavoriteEntity) private readonly favoriteRepository: Repository<GunCodeFavoriteEntity>,
+    @InjectRepository(GunCodeFeedbackEntity) private readonly feedbackRepository: Repository<GunCodeFeedbackEntity>,
     @InjectRepository(DictTypeEntity) private readonly dictTypeRepository: Repository<DictTypeEntity>,
     @InjectRepository(DictDataEntity) private readonly dictDataRepository: Repository<DictDataEntity>,
     private readonly redisService: RedisService,
@@ -133,12 +134,19 @@ export class GunCodeService {
       throw new BusinessException('只能修改自己提交的改枪码')
     }
 
+    const wasFeatured = record.isFeatured === CommonConstant.STATUS_NORMAL
     record.code = updateDto.code ?? record.code
     record.remark = updateDto.remark ?? record.remark
+    // 内容被修改后不再代表原先被精选的方案，自动取消精选
+    if (wasFeatured) {
+      record.isFeatured = CommonConstant.STATUS_DISABLE
+      record.featuredBy = null
+      record.featuredTime = null
+    }
     await this.gunCodeRepository.save(record)
 
-    if (record.isFeatured === CommonConstant.STATUS_NORMAL) await this.invalidatePublicCaches()
-    return '修改成功'
+    if (wasFeatured) await this.invalidatePublicCaches()
+    return wasFeatured ? '修改成功，已自动取消精选' : '修改成功'
   }
 
   /** 删除改枪码：本人或超管可删；命中精选时同步失效公开缓存 */
@@ -152,6 +160,74 @@ export class GunCodeService {
     await this.gunCodeRepository.softDelete({ id: In(ids) })
     await this.invalidatePublicCaches()
     return '删除成功'
+  }
+
+  /** 提交「改枪码无效」反馈：同一用户对同一条码只能反馈一次 */
+  public async createFeedback(createDto: CreateFeedbackDto, currentUser: AuthType.JwtPayload): Promise<string> {
+    const record = await this.gunCodeRepository.findOneBy({ id: Equal(createDto.codeId) })
+    if (!record) throw new BusinessException('改枪码不存在')
+
+    const exists = await this.feedbackRepository.existsBy({ userId: Equal(currentUser.userId), codeId: Equal(createDto.codeId) })
+    if (exists) throw new BusinessException('你已反馈过该改枪码，请等待处理')
+
+    const entity = new GunCodeFeedbackEntity()
+    Object.assign(entity, {
+      codeId: record.id,
+      userId: currentUser.userId,
+      username: currentUser.username,
+      gunLabel: record.gunLabel,
+      code: record.code,
+      reason: createDto.reason || null,
+      status: '0',
+    })
+    await this.feedbackRepository.save(entity)
+    return '反馈已提交，感谢你的帮助'
+  }
+
+  /** 管理端反馈分页列表 */
+  public async findFeedbackList(queryParams: QueryFeedbackDto) {
+    const queryBuilder = this.feedbackRepository.createQueryBuilder('feedback')
+    if (queryParams.status) queryBuilder.andWhere('feedback.status = :status', { status: queryParams.status })
+    if (queryParams.keyword) {
+      queryBuilder.andWhere('(feedback.code LIKE :keyword OR feedback.gunLabel LIKE :keyword OR feedback.username LIKE :keyword)', { keyword: `%${queryParams.keyword}%` })
+    }
+
+    const [records, total] = await queryBuilder
+      .orderBy('feedback.status', 'ASC')
+      .addOrderBy('feedback.createTime', 'DESC')
+      .skip(queryParams.skip)
+      .take(queryParams.take)
+      .getManyAndCount()
+
+    return {
+      total,
+      records: records.map((record) => ({
+        id: record.id,
+        codeId: record.codeId,
+        username: record.username,
+        gunLabel: record.gunLabel,
+        code: record.code,
+        reason: record.reason,
+        status: record.status,
+        handleBy: record.handleBy,
+        handleTime: record.handleTime ? dayjs(record.handleTime).format('YYYY-MM-DD HH:mm:ss') : null,
+        handleRemark: record.handleRemark,
+        createTime: dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss'),
+      })),
+    }
+  }
+
+  /** 处理反馈：标记已处理 / 已忽略 */
+  public async handleFeedback(handleDto: HandleFeedbackDto, currentUser: AuthType.JwtPayload): Promise<string> {
+    const record = await this.feedbackRepository.findOneBy({ id: Equal(handleDto.id) })
+    if (!record) throw new BusinessException('反馈记录不存在')
+
+    record.status = handleDto.status
+    record.handleBy = currentUser.userId
+    record.handleTime = new Date()
+    record.handleRemark = handleDto.remark || null
+    await this.feedbackRepository.save(record)
+    return '处理成功'
   }
 
   /** 精选 / 取消精选（仅超管可用），写后立刻失效公开缓存 */

@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/mapped-types'
 import { PaginationDto } from '@/common'
-import { IsIn, IsNotEmpty, IsOptional, Length } from 'class-validator'
+import { IsIn, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator'
 
 /** 新增改枪码（分类与枪械由前端选择，服务端会校验其合法性） */
 export class CreateGunCodeDto {
@@ -59,4 +59,39 @@ export class FavoriteGunCodeDto {
   @IsNotEmpty({ message: '改枪码 ID 不能为空' })
   @Length(1, 36, { message: '改枪码 ID 长度不能超过 36 个字符' })
   codeId: string
+}
+
+/** 提交改枪码无效反馈 */
+export class CreateFeedbackDto {
+  @IsNotEmpty({ message: '改枪码 ID 不能为空' })
+  @Length(1, 36, { message: '改枪码 ID 长度不能超过 36 个字符' })
+  codeId: string
+
+  @IsOptional()
+  @Length(1, 200, { message: '反馈说明不能超过 200 个字符' })
+  reason: string
+}
+
+/** 反馈分页查询 */
+export class QueryFeedbackDto extends PaginationDto {
+  @IsOptional()
+  @IsString()
+  keyword: string
+
+  @IsOptional()
+  @IsString()
+  status: string
+}
+
+/** 处理反馈 */
+export class HandleFeedbackDto {
+  @IsNotEmpty({ message: '反馈 ID 不能为空' })
+  id: string
+
+  @IsIn(['1', '2'], { message: '处理结果仅支持 1（已处理）或 2（已忽略）' })
+  status: string
+
+  @IsOptional()
+  @Length(1, 200, { message: '处理备注不能超过 200 个字符' })
+  remark: string
 }

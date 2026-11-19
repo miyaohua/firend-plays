@@ -609,4 +609,11 @@ INSERT INTO `sys_menu` VALUES ('2026-11-18 15:00:00', '2026-11-18 15:00:00', NUL
 -- ----------------------------
 INSERT INTO `sys_config` VALUES ('2026-11-18 15:00:00', '2026-11-18 15:00:00', NULL, 'admin', 'admin', '977a245d-db08-4e96-9da0-0553d9df263a', '注册开关', 'sys.account.registerEnabled', 'true', 'Y', '是否开放自助注册');
 
+-- ----------------------------
+-- Records of sys_menu（用户反馈）
+-- ----------------------------
+INSERT INTO `sys_menu` VALUES ('2026-11-19 10:40:00', '2026-11-19 10:40:00', NULL, 'admin', 'admin', 'c38a4a76-cb45-4147-915f-0687d6ec67ca', 'e16b7cec-0b13-4f63-a224-5e4af8a0d2d5', 'feedback', 'gun/feedback/index', 'C', 'About', '用户反馈', '1', NULL, '1', 2, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-19 10:40:00', '2026-11-19 10:40:00', NULL, 'admin', 'admin', 'c64710f1-b3ef-464d-a4dd-a5003e6a201e', 'c38a4a76-cb45-4147-915f-0687d6ec67ca', NULL, NULL, 'F', NULL, '反馈查询', '1', 'gun:feedback:query', '1', 1, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-19 10:40:00', '2026-11-19 10:40:00', NULL, 'admin', 'admin', '1478f08d-6e3f-4ed9-9924-e2146b2353bb', 'c38a4a76-cb45-4147-915f-0687d6ec67ca', NULL, NULL, 'F', NULL, '反馈处理', '1', 'gun:feedback:handle', '1', 2, '0', '1');
+
 SET FOREIGN_KEY_CHECKS = 1;
