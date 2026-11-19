@@ -1772,6 +1772,9 @@ async function bootstrap() {
   await loadAds()
   await loadNotices()
 
+  // 应用初始化且有公告时，自动弹出公告
+  if (state.notices.length) openNoticeModal()
+
   // 每 5 分钟自动刷新一次
   setInterval(refreshAll, 5 * 60 * 1000)
 }
