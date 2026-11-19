@@ -47,8 +47,8 @@
 <script setup lang="ts">
 defineOptions({ name: 'SiteResetPassword' })
 import type { FormInstance, FormRules } from 'element-plus'
-import { AuthRequest } from '@/api/auth.request'
 import { TipModal } from '@/utils'
+import { AuthRequest } from '@/api/auth.request'
 
 const router = useRouter()
 const formRef = useTemplateRef<FormInstance>('formRef')
@@ -91,6 +91,19 @@ const rules: FormRules = {
   ],
 }
 
+/** 启动发送验证码倒计时（秒） */
+function startCountdown(seconds: number) {
+  countdown.value = seconds
+  if (countdownTimer) clearInterval(countdownTimer)
+  countdownTimer = setInterval(() => {
+    countdown.value -= 1
+    if (countdown.value <= 0) {
+      if (countdownTimer) clearInterval(countdownTimer)
+      countdownTimer = null
+    }
+  }, 1000)
+}
+
 async function handleSendSms() {
   if (!/^1[3-9]\d{9}$/.test(form.phone)) {
     errorMessage.value = '请先填写正确的手机号'
@@ -100,16 +113,12 @@ async function handleSendSms() {
   try {
     const result = await AuthRequest.sendSms({ scene: 'reset', phone: form.phone })
     TipModal.msgSuccess(result.mockCode ? `验证码已发送（本地模拟：${result.mockCode}）` : '验证码已发送，请注意查收')
-    countdown.value = 60
-    countdownTimer = setInterval(() => {
-      countdown.value -= 1
-      if (countdown.value <= 0) {
-        if (countdownTimer) clearInterval(countdownTimer)
-        countdownTimer = null
-      }
-    }, 1000)
+    startCountdown(60)
   } catch (error: any) {
-    errorMessage.value = error?.message || '验证码发送失败'
+    const message = error?.message || error?.response?.data?.message || '验证码发送失败'
+    errorMessage.value = message
+    const waitMatch = String(message).match(/(\d+)\s*秒后再试/)
+    if (waitMatch) startCountdown(Number(waitMatch[1]))
   }
 }
 

@@ -192,17 +192,26 @@ async function handleSendSms() {
   try {
     const result = await AuthRequest.sendSms({ scene: 'login', phone: smsForm.phone })
     TipModal.msgSuccess(result.mockCode ? `验证码已发送（本地模拟：${result.mockCode}）` : '验证码已发送，请注意查收')
-    countdown.value = 60
-    countdownTimer = setInterval(() => {
-      countdown.value -= 1
-      if (countdown.value <= 0) {
-        if (countdownTimer) clearInterval(countdownTimer)
-        countdownTimer = null
-      }
-    }, 1000)
+    startCountdown(60)
   } catch (error: any) {
-    TipModal.msgError(error?.message || '验证码发送失败')
+    // 业务错误被请求层以普通对象 reject（无 message 字段），需从 response.data.message 取
+    const message = error?.message || error?.response?.data?.message || '验证码发送失败'
+    const waitMatch = String(message).match(/(\d+)\s*秒后再试/)
+    if (waitMatch) startCountdown(Number(waitMatch[1]))
   }
+}
+
+/** 启动发送验证码倒计时（秒） */
+function startCountdown(seconds: number) {
+  countdown.value = seconds
+  if (countdownTimer) clearInterval(countdownTimer)
+  countdownTimer = setInterval(() => {
+    countdown.value -= 1
+    if (countdown.value <= 0) {
+      if (countdownTimer) clearInterval(countdownTimer)
+      countdownTimer = null
+    }
+  }, 1000)
 }
 
 /** 短信验证码登录 */

@@ -37,7 +37,12 @@ export class SmsService {
   public async send(scene: SmsScene, phone: string) {
     const cooldownKey = `sms:cooldown:${scene}:${phone}`
     const allowed = await this.redisService.setnx(cooldownKey, '1')
-    if (!allowed) throw new BusinessException('验证码发送过于频繁，请稍后再试')
+    if (!allowed) {
+      // 把剩余冷却秒数带给前端，便于按钮同步倒计时
+      const ttl = await this.redisService.ttl(cooldownKey)
+      const seconds = ttl > 0 ? ttl : this.COOLDOWN_TTL
+      throw new BusinessException(`验证码发送过于频繁，请 ${seconds} 秒后再试`)
+    }
     await this.redisService.expire(cooldownKey, this.COOLDOWN_TTL)
 
     const dailyKey = `sms:daily:${phone}:${dayjs().format('YYYYMMDD')}`

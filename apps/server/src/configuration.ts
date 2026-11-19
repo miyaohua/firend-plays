@@ -55,7 +55,7 @@ export const configuration = () => {
       templateLogin: process.env.ALIYUN_SMS_TEMPLATE_LOGIN || 'SMS_504745513',
       templateReset: process.env.ALIYUN_SMS_TEMPLATE_RESET || 'SMS_504865505',
       templateBind: process.env.ALIYUN_SMS_TEMPLATE_BIND || 'SMS_512683868',
-      templateBindOld: process.env.ALIYUN_SMS_TEMPLATE_BIND_OLD || 'SMS_504745513',
+      templateBindOld: process.env.ALIYUN_SMS_TEMPLATE_BIND_OLD || 'SMS_512683868',
     },
   }
 }

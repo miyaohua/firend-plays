@@ -1269,12 +1269,12 @@ function smsTarget(kind) {
   return targets[kind]
 }
 
-function startSmsCountdown(kind) {
+function startSmsCountdown(kind, seconds = 60) {
   const { button } = smsTarget(kind)
   clearInterval(state.smsTimers[kind])
-  state.smsCountdown[kind] = 60
+  state.smsCountdown[kind] = seconds
   button.disabled = true
-  button.textContent = '60s'
+  button.textContent = `${seconds}s`
   state.smsTimers[kind] = setInterval(() => {
     state.smsCountdown[kind] -= 1
     if (state.smsCountdown[kind] <= 0) {
@@ -1309,7 +1309,12 @@ async function sendSms(kind) {
     showToast(result.mockCode ? `验证码已发送（本地模拟：${result.mockCode}）` : '验证码已发送，请注意查收')
     startSmsCountdown(kind)
   } catch (error_) {
-    error.textContent = normalizeError(error_)
+    const message = normalizeError(error_)
+    error.textContent = message
+    showToast(message)
+    // 后端返回剩余冷却秒数时，按钮同步倒计时，避免用户反复点击
+    const waitMatch = message.match(/(\d+)\s*秒后再试/)
+    if (waitMatch) startSmsCountdown(kind, Number(waitMatch[1]))
   }
 }
 
