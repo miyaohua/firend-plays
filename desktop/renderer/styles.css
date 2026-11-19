@@ -31,6 +31,18 @@ body {
 
 .brand {
   display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand__logo {
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+}
+
+.brand__text {
+  display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 2px;

@@ -3,8 +3,11 @@
     <header class="site-header">
       <div class="site-header__inner">
         <router-link to="/" class="site-brand">
-          <span class="site-brand__title">{{ SITE_NAME }}</span>
-          <span class="site-brand__subtitle">{{ SITE_SUBTITLE }}</span>
+          <img class="site-brand__logo" src="/favicon.svg" alt="logo" draggable="false" />
+          <span class="site-brand__text">
+            <span class="site-brand__title">{{ SITE_NAME }}</span>
+            <span class="site-brand__subtitle">{{ SITE_SUBTITLE }}</span>
+          </span>
         </router-link>
 
         <nav class="site-nav">
@@ -73,10 +76,22 @@ function goAdmin() {
 
 .site-brand {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 10px;
   color: inherit;
   text-decoration: none;
+
+  &__logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
   &__title {
     font-size: 18px;

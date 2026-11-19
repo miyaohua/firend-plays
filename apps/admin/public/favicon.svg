@@ -1,24 +1,33 @@
-<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <radialGradient id="ice" gradientUnits="userSpaceOnUse" cx="128" cy="128" r="100">
-      <stop offset="0" stop-color="#9ECBFF"/>
-      <stop offset="0.45" stop-color="#4D9FFF"/>
-      <stop offset="0.8" stop-color="#0077FF"/>
-      <stop offset="1" stop-color="#004E9E"/>
-    </radialGradient>
-    <g id="arm">
-      <path d="M128 122 L128 52" stroke="url(#ice)" stroke-width="11" stroke-linecap="round" fill="none"/>
-      <path d="M128 78 L108 62" stroke="url(#ice)" stroke-width="8" stroke-linecap="round" fill="none"/>
-      <path d="M128 78 L148 62" stroke="url(#ice)" stroke-width="8" stroke-linecap="round" fill="none"/>
-      <path d="M128 34 L138 46 L128 58 L118 46 Z" fill="url(#ice)"/>
-    </g>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1d4ed8"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
   </defs>
-  <use href="#arm"/>
-  <use href="#arm" transform="rotate(60 128 128)"/>
-  <use href="#arm" transform="rotate(120 128 128)"/>
-  <use href="#arm" transform="rotate(180 128 128)"/>
-  <use href="#arm" transform="rotate(240 128 128)"/>
-  <use href="#arm" transform="rotate(300 128 128)"/>
-  <path d="M128 108 L145.3 118 L145.3 138 L128 148 L110.7 138 L110.7 118 Z"
-        fill="#E6F1FB" stroke="#0077FF" stroke-width="5" stroke-linejoin="round"/>
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <g transform="rotate(-6 512 512)" fill="#ffffff">
+    <!-- 枪托 -->
+    <path d="M118 472 L302 428 L334 470 L334 532 L252 582 L150 560 Z"/>
+    <!-- 机匣 -->
+    <rect x="330" y="430" width="232" height="102" rx="14"/>
+    <!-- 顶部导轨与准星 -->
+    <rect x="352" y="404" width="176" height="24" rx="6"/>
+    <rect x="378" y="382" width="26" height="30" rx="4"/>
+    <rect x="856" y="404" width="22" height="34" rx="4"/>
+    <!-- 护木 -->
+    <rect x="566" y="450" width="192" height="66" rx="12"/>
+    <!-- 枪管 -->
+    <rect x="756" y="470" width="178" height="22" rx="6"/>
+    <!-- 准星座 -->
+    <rect x="846" y="430" width="18" height="50" rx="4"/>
+    <!-- 握把 -->
+    <path d="M392 532 L466 532 L442 646 L376 624 Z"/>
+    <!-- 弹匣（弧形） -->
+    <path d="M486 532 L562 532 Q588 620 574 690 Q538 706 500 690 Q480 610 486 532 Z"/>
+    <!-- 扳机护圈 -->
+    <path d="M462 560 Q492 612 528 604" fill="none" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+  </g>
+  <!-- 枪托镂空 -->
+  <path d="M168 492 L292 462 L310 496 L246 536 L186 524 Z" fill="url(#bg)" opacity="0.95" transform="rotate(-6 512 512)"/>
 </svg>

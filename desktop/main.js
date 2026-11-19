@@ -108,6 +108,7 @@ function createWindow() {
     minWidth: 980,
     minHeight: 640,
     title: '改枪坊',
+    icon: path.join(__dirname, 'build', 'icon.png'),
     backgroundColor: '#ffffff',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
