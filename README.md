@@ -111,6 +111,7 @@ pnpm dev:admin    # 前端 http://localhost:5173（开发代理已指向 3000）
 | `ALIYUN_SMS_TEMPLATE_REGISTER` | 注册模板，默认 `SMS_505150173` |
 | `ALIYUN_SMS_TEMPLATE_LOGIN` | 登录模板，默认 `SMS_504745513` |
 | `ALIYUN_SMS_TEMPLATE_RESET` | 重置密码模板，默认 `SMS_504865505` |
+| `ALIYUN_SMS_TEMPLATE_BIND` | 更换手机号模板，默认 `SMS_512683868` |
 
 > AccessKey 建议写在 `apps/server/.env.local`（已被 `.gitignore` 忽略），不要提交到仓库。
 >
