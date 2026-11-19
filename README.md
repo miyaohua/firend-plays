@@ -1,108 +1,185 @@
-<h1 align="center">NestJS Admin Template</h1>
+<div align="center">
 
-<p align="center">
-  基于 Vue 3 + NestJS 12 全 TypeScript 技术栈的中后台模板<br />
-  权限模型完整落地 · 容器化开箱可用 · pnpm monorepo 单仓双端
-</p>
+# 改枪坊
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Vue-3.5.44-42b883?logo=vuedotjs&logoColor=white" alt="Vue" />
-  <img src="https://img.shields.io/badge/NestJS-12-E0234E?logo=nestjs&logoColor=white" alt="NestJS" />
-  <img src="https://img.shields.io/badge/TypeScript-6.0.3-3178C6?logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white" alt="MySQL" />
-  <img src="https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white" alt="Redis" />
-  <img src="https://img.shields.io/badge/pnpm-12-F69220?logo=pnpm&logoColor=white" alt="pnpm" />
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
-</p>
+**好友玩旗下平台 · 玩家改枪码分享社区**
 
-<p align="center">
-  <a href="https://ace627.github.io/"><b>📚 在线文档</b></a> ·
-  <a href="https://docs.apipost.net/docs/detail/61e0debdacca000?target_id=0"><b>📮 接口文档</b></a> ·
-  <a href="./AGENTS.md">开发约定</a> ·
-  <a href="./LICENSE">MIT License</a>
-</p>
+官网 + 管理后台 + 服务端 + 桌面客户端
+
+![Vue](https://img.shields.io/badge/Vue-3.5-42b883?logo=vuedotjs&logoColor=white)
+![NestJS](https://img.shields.io/badge/NestJS-12-E0234E?logo=nestjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)
+![Electron](https://img.shields.io/badge/Electron-33-47848F?logo=electron&logoColor=white)
+![license](https://img.shields.io/badge/license-MIT-green)
+
+</div>
 
 ---
 
-## 📖 简介
+## 项目简介
 
-一套开箱可用的中后台模板：前端 **Vue 3 + TypeScript + Element Plus + Vite 8**，后端 **NestJS 12 + TypeORM + MySQL + Redis + BullMQ**。除登录鉴权外，还完整实现了用户、角色、菜单、部门、字典、参数、日志、缓存、定时任务、在线用户等中后台标配功能。
+**改枪坊** 是一个面向游戏玩家的改枪码分享社区。玩家按「武器分类 → 枪械 → 改枪码」浏览社区方案，管理员从投稿中挑选精选，客户端支持一键复制、收藏与投稿。
 
-采用 **pnpm workspace monorepo** 结构：前后端分别位于 `apps/admin` 与 `apps/server`，共享依赖（axios、dayjs、lodash-es、TypeScript、Prettier 等）统一声明在根 `package.json`，全仓库共用一份 `pnpm-lock.yaml`，根目录一次 `pnpm install` 即可完成安装；根目录另提供 `dev:server` / `dev:admin` 一键启动脚本。
+仓库包含四个部分：
 
-## 🖼️ 演示图
+| 模块 | 目录 | 说明 |
+|---|---|---|
+| 官网 | `apps/admin/src/views/site` | 品牌首页、客户端下载入口、登录 / 注册 / 重置密码 |
+| 管理后台 | `apps/admin` | 改枪码与精选、用户反馈、广告位、系统管理（用户 / 角色 / 菜单 / 字典 / 参数 / 日志 / 监控） |
+| 服务端 | `apps/server` | NestJS + TypeORM + MySQL + Redis + BullMQ，提供官网与客户端接口 |
+| 桌面客户端 | `desktop` | Electron 独立客户端，浏览、搜索、收藏、投稿与账号安全 |
 
-<table>
-  <tr>
-    <td><img src="./resource/preview/系统管理 字典管理.png" /></td>
-    <td><img src="./resource/preview/系统管理 菜单管理.png" /></td>
-  </tr>
-  <tr>
-    <td><img src="./resource/preview/效果案例 图表效果.png" /></td>
-    <td><img src="./resource/preview/系统工具 接口文档.png" /></td>
-  </tr>
-  <tr>
-    <td><img src="./resource/preview/系统监控 定时任务.png" /></td>
-    <td><img src="./resource/preview/系统管理 参数设置.png" /></td>
-  </tr>
-</table>
+## 功能一览
 
-## 🎯 内置功能
+### 官网
 
-- **用户管理** — 用户的增删改查、重置密码、修改密码、角色分配、头像设置，支持按部门划分数据权限
-- **部门管理** — 树形组织架构维护，级联调整下级部门，支持按部门划分数据权限
-- **角色管理** — 菜单与按钮权限分配、按机构划分数据权限、角色编码管理
-- **菜单管理** — 目录 / 菜单 / 按钮三级粒度，支持外链、内嵌 iframe
-- **字典管理** — 字典类型 + 字典数据两级结构，Redis 缓存主动失效，全局 `useDict()` Hook 封装
-- **参数设置** — 全局系统参数在线维护，Redis 缓存实时生效，全局 `useConfig()` Hook 取值
-- **登录防护** — 登录失败按账号与来源 IP 计数锁定，阈值参数可配，监控页查看与解锁
-- **登录续期** — 刷新令牌无感续期，会话闲置超时自动恢复，最长 7 天免重新登录
-- **文件管理** — 目录树管理文件，回收站还原，支持秒传、分片上传、断点续传，按引用计数彻底删除
-- **服务监控** — 实时 CPU 使用率、内存占用、磁盘空间、服务器运行信息与数据库连接池状态
-- **缓存监控** — Redis 实例信息、内存使用量、Key 数量，分类浏览与在线可视化管理
-- **健康检查** — `/live` `/ready` 双探针，适配 K8s / Docker Swarm 编排
-- **在线用户** — 实时查看活跃会话，支持强制下线
-- **定时任务** — BullMQ 动态调度，支持手动执行 / 暂停 / 恢复，含执行日志
-- **操作日志** — 全接口自动记录，IP 归属地解析，支持条件查询与导出
-- **登录日志** — 登录成功 / 失败全量记录，支持条件查询与导出
-- **菜单搜索** — 导航栏关键词搜索菜单，快速跳转页面
-- **列表工具栏** — 各列表页支持搜索区显隐、刷新与列显隐配置
-- **暗黑模式** — 一键切换明暗主题，CSS 变量全局控制
-- **多标签页** — 类浏览器 Tab 交互，支持刷新 / 关闭 / 右键菜单
-- **响应式布局** — 适配 PC / Pad / Mobile，侧边栏自动折叠
-- **布局设置** — 侧边栏 Logo、面包屑、标签页、动态标题均可自定义开关
+- 改枪坊品牌首页：功能亮点、精选预览、客户端下载、三步上手
+- 客户端下载入口（地址可用 `VITE_DOWNLOAD_URL` 配置）
+- 手机号注册、密码 / 短信双模式登录、忘记密码
 
-## 🚀 快速开始
+### 桌面客户端
 
-> 环境要求：Node.js ≥ 24 · pnpm 12 · MySQL 8 · Redis 7
->
-> pnpm 版本由 `package.json` 的 `packageManager` 字段锁定，启用 corepack 时执行 `corepack enable` 后会自动使用对应版本。
+- 精选改枪码浏览：左侧武器分类、枪械筛选、分类内模糊搜索
+- 一键复制改枪码到系统剪贴板
+- 我的收藏：卡片星标收藏 / 取消，收藏列表
+- 我的投稿：提交、编辑、删除，精选码被编辑后自动取消精选
+- 精选码「反馈无效」：未登录也可提交，记录为匿名反馈
+- 个人主页：资料、投稿 / 收藏统计、投稿与收藏列表
+- 账号安全：修改密码（已绑手机仅需短信验证码）、更换手机（原手机 + 新手机两步双重验证）
+- 广告位轮播：后台配置多条图片 / 文字广告，支持排期、曝光与点击统计
+- 登录方式：账号 / 手机号 + 密码、手机号 + 短信验证码、应用内注册与忘记密码
+- 主题：浅色界面，底部版本号点开可查看接口地址
+
+### 管理后台
+
+| 模块 | 能力 |
+|---|---|
+| 枪械管理 | 改枪码列表 / 新增 / 编辑 / 删除、设为精选、用户反馈处理 |
+| 运营管理 | 广告位增删改、图片上传、排期、启停、曝光 / 点击统计 |
+| 系统管理 | 用户、角色、菜单、部门、字典、参数、文件、系统图标 |
+| 系统监控 | 在线用户、定时任务、服务监控、缓存监控、登录锁定、操作 / 登录日志 |
+| 系统工具 | 项目文档、接口文档、效果案例 |
+
+### 认证与账号安全
+
+- 注册：手机号必填，短信验证码校验，默认「普通用户」角色
+- 登录：账号或手机号 + 密码（图片验证码）；手机号 + 短信验证码
+- 忘记密码：手机号验证后可重置
+- 修改密码：已绑手机仅校验手机验证码；未绑定手机的老账号降级为原密码
+- 更换手机：已绑定时需「原手机验证 → 票据 → 新手机验证」两步，24 小时内限一次
+- 重置 / 改密 / 换绑成功后，其他设备会话下线，当前设备保留
+
+## 技术栈
+
+| 层 | 技术 |
+|---|---|
+| 前端 | Vue 3.5 · Vite 8 · TypeScript · Element Plus · Pinia · Vue Router |
+| 服务端 | NestJS 12 · TypeORM · MySQL 8 · Redis 7 · BullMQ · JWT · Argon2 |
+| 桌面端 | Electron 33 · electron-builder |
+| 短信 | 阿里云短信（RPC 签名，无需额外 SDK） |
+
+## 目录结构
+
+```
+.
+├── apps/
+│   ├── admin/                 # 前端：官网 + 管理后台
+│   │   └── src/
+│   │       ├── views/site/    # 官网（首页 / 注册 / 重置密码）
+│   │       ├── views/gun/     # 改枪码管理与用户反馈
+│   │       ├── views/ad/      # 广告位管理
+│   │       └── ...
+│   └── server/                # 后端：NestJS
+│       ├── src/modules/       # auth / gun / ad / system / monitor ...
+│       ├── src/database/      # 迁移文件
+│       └── scripts/init-db.mjs
+├── desktop/                   # Electron 桌面客户端
+│   ├── main.js                # 主进程：接口代理、会话、广告图片转 data URL
+│   ├── preload.js
+│   ├── renderer/              # 无框架渲染层（HTML/CSS/JS）
+│   └── build/                 # 应用图标（icns / ico / png）
+├── init.sql                   # 种子数据（菜单、权限、字典、演示数据）
+├── docker-compose.yml         # 仅编排后端服务
+├── Dockerfile.server
+├── docs/                      # 开发约定与参考文档
+└── resource/                  # 静态资源
+```
+
+## 快速开始
+
+### 环境要求
+
+- Node.js ≥ 24
+- pnpm 12（`package.json` 的 `packageManager` 已锁定）
+- MySQL 8
+- Redis 7
+
+### 1. 启动 MySQL 与 Redis
+
+本机没有现成实例时可用 Docker：
 
 ```bash
-# 1. 克隆仓库
-git clone https://github.com/ace627/nestjs-admin-template.git
-cd nestjs-admin-template
+docker run -d --name gun-mysql -p 3306:3306 \
+  -e MYSQL_ROOT_PASSWORD=123456 \
+  mysql:8 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
-# 2. 安装依赖（workspace 根目录一次安装）
-pnpm install
+docker run -d --name gun-redis -p 6379:6379 redis:7
+```
 
-# 3. 配置后端环境变量：复制模板后按需修改 MYSQL_* / REDIS_* / JWT_SECRET
+### 2. 配置后端环境变量
+
+```bash
 cp apps/server/.env.example apps/server/.env
+```
 
-# 4. 初始化数据库：一键建库、生成并执行迁移、写入种子数据
+按需修改 `MYSQL_*`、`REDIS_*`、`JWT_SECRET`。本地个性化配置建议放在 `apps/server/.env.local`（已被 `.gitignore` 忽略，优先级高于 `.env`）。
+
+### 3. 安装依赖
+
+```bash
+pnpm install
+```
+
+### 4. 初始化数据库
+
+```bash
 pnpm --filter server db:init
+```
 
-# 5. 启动
+该命令会：创建数据库（utf8mb4）→ 执行全部 TypeORM 迁移 → 导入 `init.sql` 种子数据（菜单、权限、字典、演示账号等）。
+
+> `MYSQL_SYNCHRONIZE` 必须保持 `false`：表结构只由迁移管理，`init.sql` 只作为种子数据。
+
+### 5. 启动
+
+```bash
 pnpm dev:server   # 后端 http://localhost:3000/api
 pnpm dev:admin    # 前端 http://localhost:5173（开发代理已指向 3000）
 ```
 
-启动完成后使用默认账号登录：**admin / 123456**（超级管理员，建议登录后修改密码）。
+默认管理员：**admin / 123456**（请登录后尽快修改密码）。
 
-### 短信验证码（阿里云）
+### 可选：Docker 运行后端
 
-注册、短信登录与重置密码均使用阿里云短信，需在 `apps/server/.env` 中配置：
+在仓库根目录创建 `.env`（供 compose 读取）：
+
+```bash
+MYSQL_HOST=127.0.0.1
+MYSQL_PASSWORD=123456
+MYSQL_DATABASE=gun_code
+REDIS_HOST=127.0.0.1
+JWT_SECRET=change-me
+```
+
+```bash
+docker compose up -d --build
+```
+
+## 短信（阿里云）
+
+注册、登录、重置密码、更换手机均使用阿里云短信。在 `apps/server/.env`（或 `.env.local`）中配置：
 
 | 变量 | 说明 |
 |---|---|
@@ -110,137 +187,172 @@ pnpm dev:admin    # 前端 http://localhost:5173（开发代理已指向 3000）
 | `ALIYUN_SMS_SIGN_NAME` | 已审核通过的短信签名 |
 | `ALIYUN_SMS_TEMPLATE_REGISTER` | 注册模板，默认 `SMS_505150173` |
 | `ALIYUN_SMS_TEMPLATE_LOGIN` | 登录模板，默认 `SMS_504745513` |
-| `ALIYUN_SMS_TEMPLATE_RESET` | 重置密码模板，默认 `SMS_504865505` |
-| `ALIYUN_SMS_TEMPLATE_BIND` | 更换手机号模板，默认 `SMS_512683868` |
-| `ALIYUN_SMS_TEMPLATE_BIND_OLD` | 更换手机号时原手机验证模板，默认 `SMS_512683868` |
+| `ALIYUN_SMS_TEMPLATE_RESET` | 重置 / 修改密码模板，默认 `SMS_504865505` |
+| `ALIYUN_SMS_TEMPLATE_BIND` | 更换手机号（新号）模板，默认 `SMS_512683868` |
+| `ALIYUN_SMS_TEMPLATE_BIND_OLD` | 更换手机号（原号）模板，默认 `SMS_512683868` |
 
-> AccessKey 建议写在 `apps/server/.env.local`（已被 `.gitignore` 忽略），不要提交到仓库。
->
-> 本地未申请密钥时可设置 `SMS_MOCK=true`：验证码不会真实发送，会写入后端日志并在发送接口响应中返回 `mockCode`（仅限开发环境）。
->
-> 新账号默认有「1 条/分钟」的阿里云账号级流控，上线前建议在短信控制台申请提额。
+> 密钥建议放在 `apps/server/.env.local`（已被 git 忽略），不要提交到仓库。
 
-## 🗄️ 数据库教程
+**本地无密钥时**：
 
-除快速开始中的 `pnpm --filter server db:init` 外，以下命令均在 `apps/server` 目录下执行，连接信息由 `apps/server/.env` 提供。
+```bash
+# apps/server/.env.local
+SMS_MOCK=true
+```
 
-### 新项目初始化数据库（一键）
+验证码不会真实发送，会写入后端日志并在发送接口响应中返回 `mockCode`，便于联调。上线前务必设为 `false`。
+
+频控：同一手机号 + 场景 60 秒冷却、单号每日 10 条、验证码错误 5 次作废；阿里云新账号默认有账号级「1 条/分钟」流控，上线前建议在短信控制台申请提额。
+
+## 桌面客户端
+
+### 开发运行
+
+```bash
+cd desktop
+npm install
+npm start
+```
+
+默认接口地址 `http://localhost:3000/api`，可通过以下方式覆盖：
+
+```bash
+npm start -- --api-base=https://your-domain.com/api
+# 或
+DESKTOP_API_BASE=https://your-domain.com/api npm start
+```
+
+> 如果报「Electron 被当作 Node 运行」，说明终端存在 `ELECTRON_RUN_AS_NODE=1`，用
+> `env -u ELECTRON_RUN_AS_NODE npm start` 启动。
+
+### 打包
+
+```bash
+cd desktop
+
+npm run dist:mac   # macOS dmg
+npm run dist:win   # Windows NSIS 安装包
+```
+
+产物位于 `desktop/release/`：
+
+| 平台 | 产物 |
+|---|---|
+| macOS | `改枪坊-1.0.0-arm64.dmg`、`release/mac-arm64/改枪坊.app` |
+| Windows | `改枪坊-1.0.0-win-x64.exe`、`release/win-unpacked/` |
+
+说明：
+
+- Windows 包可在 macOS 上交叉构建（electron-builder 25 无需 wine），首次会下载 Windows 版 Electron
+- 未配置代码签名时，macOS 首次打开需右键「打开」，Windows 会提示「未知发布者」
+- 正式分发建议配置代码签名：`CSC_LINK`、`CSC_KEY_PASSWORD`
+- 安装包与 `node_modules` 已在 `.gitignore` 中，不会入库
+
+## 数据库与迁移
 
 ```bash
 cd apps/server
-cp .env.example .env   # 按需修改 MYSQL_* / REDIS_* / JWT_SECRET
-pnpm db:init
-```
 
-一条命令按顺序完成四步：
+# 生成迁移（修改实体后）
+pnpm typeorm migration:generate src/database/migrations/<name>
 
-1. 创建 `MYSQL_DATABASE` 指定的库（utf8mb4 / utf8mb4_unicode_ci）。
-2. 仓库里还没有迁移文件时，在**空库**上执行 `migration:generate`，从实体 diff 出全部建表语句，生成 `src/database/migrations/<时间戳>-baseline.ts`；已有迁移文件则跳过此步。
-3. 执行 `migration:run`，跑完 baseline 与之后的全部增量迁移（首次会创建 `sys_migrations` 记录执行历史）。
-4. 从 `init.sql` 提取 `INSERT` 写入种子数据；脚本会补上显式列名，避免实体生成的列顺序与导出快照不一致导致数据错位。
-
-`init.sql` 现在只作为种子数据来源，`CREATE TABLE` / `DROP TABLE` 不再直接导入。生成的 baseline 迁移文件**必须提交进仓库**：之后执行初始化会跳过生成步骤，只跑仓库里已有的迁移，换机器也不会得到时间戳不同的基线。生产环境首次部署同样执行这一条命令（把 `.env` 指向生产库），之后的结构变更只走增量迁移。
-
-```bash
-node scripts/init-db.mjs --dry-run   # 只检测并打印将要执行的动作，不写库、不生成文件
-```
-
-> 目标库已有表时脚本会中止，避免破坏现有数据；确认要删库重建才执行 `node scripts/init-db.mjs --force`，该操作不可撤销。
-
-### 后续改字段：用 TypeORM 迁移同步数据库
-
-`.env` 中 `MYSQL_SYNCHRONIZE=false`，改实体后表结构不会自动变化，一律通过迁移同步：
-
-```bash
-# 1. 修改实体文件 apps/server/src/**/*.entity.ts
-
-# 2. 生成增量迁移（对比实体与当前连接的数据库）
-pnpm migration:generate
-#   生成 src/database/migrations/<时间戳>-init.ts
-#   自定义文件名：pnpm typeorm migration:generate src/database/migrations/add-user-status
-
-# 3. 检查生成的 up() / down()（数据变更的回滚逻辑需手写），提交该迁移文件
-
-# 4. 执行迁移（本地与生产执行同一条）
+# 执行 / 回滚
 pnpm migration:run
-
-# 5. 查看已执行 / 待执行
-pnpm typeorm migration:show
-
-# 6. 回滚最后一条
 pnpm migration:revert
 ```
 
-- `migration:generate` 以当前连接的库为基准做 diff：空库上生成的是全量 baseline，结构仍是上一版的库上生成的是增量迁移。若实体与库结构完全一致，命令不会生成文件，而是打印 `No changes in database schema were found` 并以非零码退出。
-- 首次执行 `migration:run` 时 TypeORM 会自动创建 `sys_migrations` 表记录执行历史；`migration:revert` 每次只回滚最后一条，且依赖 `down()` 写对。
-- 迁移命令依赖 `esno` 与 TypeScript 源码，请在本地或 CI 等具备完整依赖的环境执行；连接生产库时通过 `.env` / 环境变量指向生产地址，并保持 `MYSQL_SYNCHRONIZE=false`。baseline 应在本地生成并提交，生产环境执行时脚本会跳过生成步骤。
-- 初始化之后的结构变更一律走迁移，不要手工改表。
+约束：
 
-## 🐳 Docker 部署
+- 所有表结构变更必须通过迁移提交
+- `init.sql` 只放种子数据（菜单、权限、字典、演示数据），随功能迭代同步维护
+- `pnpm --filter server db:init` 用于全新库初始化，已有表的库会中止；`--force` 会删库重建
 
-只编排 NestJS 服务，MySQL / Redis 连接现成的容器或客户端。先在仓库根目录创建 `.env`（勿提交，与本地开发用的 `apps/server/.env` 是两份）配置连接信息：
+## 部署
 
-```bash
-# .env（仓库根目录）
-MYSQL_HOST=192.168.1.10   # 容器可访问的 MySQL IP（勿写 127.0.0.1）
-MYSQL_PORT=3306
-MYSQL_USERNAME=root
-MYSQL_PASSWORD=your-strong-password
-MYSQL_DATABASE=nestdemo
-REDIS_HOST=192.168.1.10   # 容器可访问的 Redis IP（勿写 127.0.0.1）
-REDIS_PORT=6379
-REDIS_PASSWORD=
-JWT_SECRET=your-random-secret
-```
-
-外部 MySQL 需先按上文「数据库教程」完成初始化，然后：
+### 前端
 
 ```bash
-docker compose up -d --build
+cd apps/admin
+pnpm build
+# 产物：apps/admin/dist
 ```
 
-服务启动后监听 `3000` 端口，健康探针为 `/api/monitor/health/live`；前端需另行 `pnpm build` 后部署静态产物。
+Nginx 示例（history 路由 + 接口与上传目录反代）：
 
-### 离线部署：构建并导出镜像 tar
+```nginx
+server {
+  listen 80;
+  server_name your-domain.com;
 
-目标机器不能联网构建时，在联网的构建机上执行仓库根目录的脚本，一次完成构建与导出：
+  root /var/www/gun-code/dist;
+  index index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  location /api/ {
+    proxy_pass http://127.0.0.1:3000/api/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    client_max_body_size 20m;
+  }
+}
+```
+
+### 后端
 
 ```bash
-node scripts/build-server-image.mjs
-# 产物：dist/nest-admin-template-server.tar
-# 导出成功后脚本会删除本地同名镜像，不在 Docker 镜像列表留存
+cd apps/server
+pnpm build
+NODE_ENV=production node dist/main
 ```
 
-镜像名与产物路径统一在脚本顶部的 `config` 常量中修改（默认 `nest-admin-server:latest` / `dist/nest-admin-template-server.tar`）。把 tar 拷到目标机后导入并启动：
+或使用仓库根目录的 `docker-compose.yml` 构建镜像运行（上传与日志已挂载为卷）。
 
-```bash
-docker load -i nest-admin-template-server.tar
-docker run -d --name nest-admin-server --restart unless-stopped \
-  -p 3000:3000 --env-file .env nest-admin-server:latest
-```
+部署检查清单：
 
-> - 镜像名 `nest-admin-server:latest` 与 `docker-compose.yml` 的 `image` 字段一致，导入后用 `docker compose up -d` 即可直接启动（无需 `--build`）。
-> - 镜像架构跟随构建机（默认 `linux/amd64`），目标机为 arm64 等架构时需在同架构机器上构建，否则导入后无法运行。
+- `MYSQL_SYNCHRONIZE=false`
+- 修改默认管理员密码
+- 配置真实的 `JWT_SECRET` 与阿里云短信密钥
+- 前端 `VITE_DOWNLOAD_URL` 指向真实安装包地址
+- 备份 `uploads/` 与数据库
 
-## 📂 目录结构
+## 常用命令
 
-```
-├── apps/                # pnpm workspace 子包
-│   ├── admin/           # 前端工程（Vue 3 + TypeScript + Vite）
-│   └── server/          # 后端工程（NestJS + TypeORM）
-│       └── .env.example # 环境变量模板
-├── scripts/             # 仓库级脚本（SVG 图标清理、init.sql 生成、镜像构建导出）
-├── docs/                # 本地文档
-├── dist/                # 构建产物目录（离线镜像 tar，不入库）
-├── init.sql             # 种子数据来源（脚本只提取 INSERT，建表由迁移负责）
-├── docker-compose.yml   # 后端服务编排（仅 server，连外部 MySQL / Redis）
-├── Dockerfile.server    # 后端镜像构建文件
-├── pnpm-workspace.yaml  # pnpm workspace 配置
-└── AGENTS.md            # 开发协作约定
-```
+| 命令 | 说明 |
+|---|---|
+| `pnpm dev:server` | 启动后端（watch） |
+| `pnpm dev:admin` | 启动前端开发服务器 |
+| `pnpm --filter server db:init` | 初始化数据库（建库 + 迁移 + 种子） |
+| `pnpm --filter admin build` | 构建前端 |
+| `pnpm --filter server build` | 构建后端 |
+| `pnpm format` | Prettier 格式化 |
+| `cd desktop && npm start` | 启动桌面客户端 |
+| `cd desktop && npm run dist:win` | 打包 Windows 安装包 |
 
-## 💬 前后端分离交流群
+## 文档
 
-QQ群：[![加入QQ群](https://img.shields.io/badge/未满-1041747918-brightgreen.svg)](http://qm.qq.com/cgi-bin/qm/qr?_wv=1027&k=uwnXZCQo-IuGObfiFh_ehcAGxrM1UBoc&authKey=e4YrAHRe2LEg8CG1%2B6uAh6hdKOHTBUElwHyT48B%2FptK9NaemIkKNa0cA2E0ylsSS&noverify=0&group_code=1041747918)
+- [开发约定](./AGENTS.md)
+- [代码风格](./docs/代码风格.md)
+- [桌面客户端说明](./desktop/README.md)
+- [接口文档](https://docs.apipost.net/docs/detail/61e0debdacca000?target_id=0)（模板示例，按实际部署替换）
 
-点击按钮入群。
+## 常见问题
+
+**登录一直提示验证码错误？**
+检查 `sys.account.captchaEnabled` 参数与系统时间；开发环境确认 Redis 可用。
+
+**短信发送失败？**
+确认 AccessKey 权限、签名与模板编码一致；新账号注意「1 条/分钟」账号级流控；本地可先用 `SMS_MOCK=true`。
+
+**改枪码编辑后为什么不精选了？**
+内容被修改的精选码会自动取消精选，需要管理员重新精选。
+
+**上传的图片打不开？**
+后端静态资源路径为 `/api/uploads/...`，部署时需让 Nginx 把 `/api/` 反代到后端，并保证 `uploads/` 持久化。
+
+## License
+
+[MIT](./LICENSE)
