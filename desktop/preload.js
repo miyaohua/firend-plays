@@ -48,6 +48,8 @@ contextBridge.exposeInMainWorld('desktop', {
   /** 退出登录 */
   logout: () => ipcRenderer.invoke('auth:logout'),
 
+  /** 启用中的公告 */
+  getNotices: () => ipcRenderer.invoke('notice:active'),
   /** 当前广告（含图片 data URL） */
   getAds: () => ipcRenderer.invoke('ad:current'),
   /** 广告曝光 / 点击上报 */

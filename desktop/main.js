@@ -240,6 +240,9 @@ ipcMain.handle('auth:verifyBindOld', (_event, code) => requestApi('/auth/bindPho
 /** 绑定手机号 */
 ipcMain.handle('auth:bindPhone', (_event, form) => requestApi('/auth/bindPhone', { method: 'POST', body: form, auth: true }))
 
+/** 启用中的公告（公开） */
+ipcMain.handle('notice:active', () => requestApi('/notice/active'))
+
 /** 当前广告：图片在主进程取回转 data URL，避免放宽渲染进程 CSP */
 ipcMain.handle('ad:current', async () => {
   const ads = await requestApi('/ad/current?position=desktop-slot')

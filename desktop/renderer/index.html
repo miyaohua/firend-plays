@@ -40,6 +40,13 @@
       </aside>
 
       <section class="content">
+        <!-- 公告栏：后台启用中的公告 -->
+        <div id="noticeBar" class="notice-bar" hidden>
+          <span class="notice-bar__label">公告</span>
+          <span id="noticeBarText" class="notice-bar__text"></span>
+          <button id="noticeMore" class="notice-bar__more" type="button">详情 ›</button>
+        </div>
+
         <!-- 广告位：后台配置后轮播展示，无广告时显示合作占位 -->
         <div id="adSlot" class="ad-slot"></div>
 
@@ -381,6 +388,18 @@
         <div class="modal__actions">
           <button class="button button--ghost" type="button" data-close="feedbackModal">取消</button>
           <button id="feedbackSubmit" class="button button--primary" type="button">提交反馈</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 公告详情 -->
+    <div id="noticeModal" class="modal" hidden>
+      <div class="modal__mask" data-close="noticeModal"></div>
+      <div class="modal__panel modal__panel--wide">
+        <h2 class="modal__title">公告</h2>
+        <div id="noticeList" class="notice-list"></div>
+        <div class="modal__actions">
+          <button class="button button--primary" type="button" data-close="noticeModal">知道了</button>
         </div>
       </div>
     </div>

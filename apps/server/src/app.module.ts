@@ -12,6 +12,7 @@ import { MonitorModule } from './modules/monitor/monitor.module'
 import { DashboardModule } from './modules/dashboard/dashboard.module'
 import { GunModule } from './modules/gun/gun.module'
 import { AdModule } from './modules/ad/ad.module'
+import { NoticeModule } from './modules/notice/notice.module'
 import { CommonModule } from './modules/common/common.module'
 
 @Module({
@@ -27,6 +28,7 @@ import { CommonModule } from './modules/common/common.module'
     DashboardModule, // 首页统计
     GunModule, // 枪械改枪码
     AdModule, // 广告位
+    NoticeModule, // 公告
   ],
 
   providers: [

@@ -616,4 +616,18 @@ INSERT INTO `sys_menu` VALUES ('2026-11-19 10:40:00', '2026-11-19 10:40:00', NUL
 INSERT INTO `sys_menu` VALUES ('2026-11-19 10:40:00', '2026-11-19 10:40:00', NULL, 'admin', 'admin', 'c64710f1-b3ef-464d-a4dd-a5003e6a201e', 'c38a4a76-cb45-4147-915f-0687d6ec67ca', NULL, NULL, 'F', NULL, '反馈查询', '1', 'gun:feedback:query', '1', 1, '0', '1');
 INSERT INTO `sys_menu` VALUES ('2026-11-19 10:40:00', '2026-11-19 10:40:00', NULL, 'admin', 'admin', '1478f08d-6e3f-4ed9-9924-e2146b2353bb', 'c38a4a76-cb45-4147-915f-0687d6ec67ca', NULL, NULL, 'F', NULL, '反馈处理', '1', 'gun:feedback:handle', '1', 2, '0', '1');
 
+-- ----------------------------
+-- Records of sys_menu（公告管理）
+-- ----------------------------
+INSERT INTO `sys_menu` VALUES ('2026-11-19 16:30:00', '2026-11-19 16:30:00', NULL, 'admin', 'admin', '800e05cd-4d70-429e-b8f7-076ffafd75e7', '6d29b44c-19d6-4a42-8cc1-9ed58879abc8', 'notice', 'notice/index', 'C', 'Markdown', '公告管理', '1', NULL, '1', 2, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-19 16:30:00', '2026-11-19 16:30:00', NULL, 'admin', 'admin', 'defc9619-dc49-40f7-8351-4ebed6287905', '800e05cd-4d70-429e-b8f7-076ffafd75e7', NULL, NULL, 'F', NULL, '公告查询', '1', 'notice:query', '1', 1, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-19 16:30:00', '2026-11-19 16:30:00', NULL, 'admin', 'admin', '96c897de-8c08-4930-8fce-8496a02b33a3', '800e05cd-4d70-429e-b8f7-076ffafd75e7', NULL, NULL, 'F', NULL, '公告新增', '1', 'notice:create', '1', 2, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-19 16:30:00', '2026-11-19 16:30:00', NULL, 'admin', 'admin', 'bf68d3a7-bcb4-4566-b8d9-890f2f17f89d', '800e05cd-4d70-429e-b8f7-076ffafd75e7', NULL, NULL, 'F', NULL, '公告编辑', '1', 'notice:update', '1', 3, '0', '1');
+INSERT INTO `sys_menu` VALUES ('2026-11-19 16:30:00', '2026-11-19 16:30:00', NULL, 'admin', 'admin', 'a3763939-54a3-4f27-a746-ff28c1386812', '800e05cd-4d70-429e-b8f7-076ffafd75e7', NULL, NULL, 'F', NULL, '公告删除', '1', 'notice:delete', '1', 4, '0', '1');
+
+-- ----------------------------
+-- Records of sys_notice（演示公告）
+-- ----------------------------
+INSERT INTO `sys_notice` VALUES ('2026-11-19 16:30:00', '2026-11-19 16:30:00', NULL, 'admin', 'admin', 'b1722513-357c-4843-b4b1-695c7b70d8ea', '欢迎使用改枪坊', '精选改枪码每日更新，欢迎在客户端收藏、复制或提交自己的方案。', 1, '1');
+
 SET FOREIGN_KEY_CHECKS = 1;

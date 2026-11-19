@@ -24,6 +24,7 @@ const state = {
   adContact: '2542571191@qq.com',
   siteUrl: 'http://localhost:5173',
   ads: [],
+  notices: [],
   adIndex: 0,
   shownAdIds: new Set(),
   adTimer: null,
@@ -134,6 +135,11 @@ const dom = {
   submitConfirm: document.getElementById('submitConfirm'),
   searchInput: document.getElementById('searchInput'),
   toolbar: document.getElementById('toolbar'),
+  noticeBar: document.getElementById('noticeBar'),
+  noticeBarText: document.getElementById('noticeBarText'),
+  noticeMore: document.getElementById('noticeMore'),
+  noticeModal: document.getElementById('noticeModal'),
+  noticeList: document.getElementById('noticeList'),
   adSlot: document.getElementById('adSlot'),
   registerLink: document.getElementById('registerLink'),
   adContact: document.getElementById('adContact'),
@@ -364,7 +370,47 @@ function renderGuns() {
   for (const gun of typeItem.guns) createGunButton(gun.label, gun.value)
 }
 
-/** 渲染广告位：有广告则轮播，无广告回退合作占位 */
+async function loadNotices() {
+  try {
+    state.notices = await window.desktop.getNotices()
+  } catch {
+    state.notices = []
+  }
+  renderNoticeBar()
+}
+
+function renderNoticeBar() {
+  const hasNotice = state.notices.length > 0
+  dom.noticeBar.hidden = !hasNotice || state.view === 'profile'
+  if (hasNotice) dom.noticeBarText.textContent = state.notices[0].title
+}
+
+function openNoticeModal() {
+  if (!state.notices.length) return
+  dom.noticeList.replaceChildren()
+  for (const notice of state.notices) {
+    const item = document.createElement('div')
+    item.className = 'notice-item'
+
+    const title = document.createElement('p')
+    title.className = 'notice-item__title'
+    title.textContent = notice.title
+
+    const time = document.createElement('p')
+    time.className = 'notice-item__time'
+    time.textContent = notice.createTime
+
+    const content = document.createElement('p')
+    content.className = 'notice-item__content'
+    content.textContent = notice.content
+
+    item.append(title, time, content)
+    dom.noticeList.append(item)
+  }
+  showModal(dom.noticeModal)
+}
+
+/** 渲染广告位：有广告则轮播，无广告回退合作占位 *//** 渲染广告位：有广告则轮播，无广告回退合作占位 */
 function renderAdPanel() {
   const ads = state.ads
   const ad = ads.length ? ads[state.adIndex % ads.length] : null
@@ -678,6 +724,7 @@ function applyViewVisibility() {
   dom.profileView.hidden = !isProfile
   dom.typesAside.hidden = isProfile
   dom.adSlot.hidden = isProfile
+  renderNoticeBar()
   dom.gunList.hidden = isProfile
   dom.searchBar.hidden = isProfile
   dom.codeList.hidden = isProfile
@@ -1594,6 +1641,7 @@ async function refreshAll() {
     await loadFavorites()
   }
   await loadAds()
+  await loadNotices()
   renderAll()
 }
 
@@ -1629,6 +1677,7 @@ async function bootstrap() {
   dom.forgotSendBtn.addEventListener('click', () => sendSms('forgot'))
   dom.forgotSubmit.addEventListener('click', handleForgotSave)
   dom.feedbackSubmit.addEventListener('click', handleFeedback)
+  dom.noticeBar.addEventListener('click', openNoticeModal)
   for (const button of document.querySelectorAll('[data-login-mode]')) {
     button.addEventListener('click', () => setLoginMode(button.dataset.loginMode))
   }
@@ -1673,6 +1722,7 @@ async function bootstrap() {
       closeModal('passwordModal')
       closeModal('forgotModal')
       closeModal('feedbackModal')
+      closeModal('noticeModal')
       hideModal(dom.editCodeModal)
       hideModal(dom.submitModal)
     }
@@ -1720,6 +1770,7 @@ async function bootstrap() {
   if (state.user) await loadMine()
   await loadData()
   await loadAds()
+  await loadNotices()
 
   // 每 5 分钟自动刷新一次
   setInterval(refreshAll, 5 * 60 * 1000)
