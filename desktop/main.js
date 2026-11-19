@@ -207,6 +207,12 @@ ipcMain.handle('auth:logout', async () => {
 
 ipcMain.handle('auth:session', () => currentSession())
 
+/** 个人资料（同时刷新鉴权缓存） */
+ipcMain.handle('auth:profile', () => requestApi('/auth/getInfo', { auth: true }))
+
+/** 我的收藏列表（个人主页统计用） */
+ipcMain.handle('gun:favorites', () => requestApi('/gun/code/favorite/list', { auth: true }))
+
 /** 当前广告：图片在主进程取回转 data URL，避免放宽渲染进程 CSP */
 ipcMain.handle('ad:current', async () => {
   const ads = await requestApi('/ad/current?position=desktop-slot')

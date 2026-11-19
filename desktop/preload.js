@@ -11,6 +11,10 @@ contextBridge.exposeInMainWorld('desktop', {
 
   /** 当前登录会话（不含令牌） */
   getSession: () => ipcRenderer.invoke('auth:session'),
+  /** 个人资料 */
+  getProfile: () => ipcRenderer.invoke('auth:profile'),
+  /** 我的收藏列表 */
+  getFavorites: () => ipcRenderer.invoke('gun:favorites'),
   /** 获取图片验证码 */
   getCaptcha: () => ipcRenderer.invoke('auth:captcha'),
   /** 登录（credentials：username / password / captcha / uuid） */

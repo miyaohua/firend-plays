@@ -18,15 +18,15 @@
         <button id="refresh" class="button button--ghost" type="button">刷新</button>
         <button id="loginBtn" class="button button--primary" type="button">登录</button>
         <div id="userBox" class="user-box" hidden>
-          <span id="userName" class="user-name"></span>
+          <button id="userName" class="user-name" type="button" title="个人主页"></button>
           <button id="submitBtn" class="button button--primary" type="button">提交改枪码</button>
           <button id="logoutBtn" class="button button--ghost" type="button">退出</button>
         </div>
       </div>
     </header>
 
-    <main class="app-main">
-      <aside class="types">
+    <main id="appMain" class="app-main">
+      <aside id="typesAside" class="types">
         <p class="types__title">武器分类</p>
         <div id="typeList" class="types__list"></div>
       </aside>
@@ -44,11 +44,13 @@
 
         <div id="gunList" class="guns"></div>
 
-        <div class="search">
+        <div id="searchBar" class="search">
           <input id="searchInput" class="search__input" type="search" placeholder="搜索当前分类下的改枪码 / 备注" />
         </div>
 
         <div id="codeList" class="list"></div>
+
+        <section id="profileView" class="profile" hidden></section>
       </section>
     </main>
 

@@ -8,6 +8,8 @@ const state = {
   selectedType: '',
   selectedGun: '',
   view: 'featured',
+  profile: null,
+  favoriteCount: 0,
   user: null,
   captcha: null,
   loginMode: 'password',
@@ -25,6 +27,10 @@ const state = {
 }
 
 const dom = {
+  appMain: document.getElementById('appMain'),
+  typesAside: document.getElementById('typesAside'),
+  searchBar: document.getElementById('searchBar'),
+  profileView: document.getElementById('profileView'),
   typeList: document.getElementById('typeList'),
   gunList: document.getElementById('gunList'),
   codeList: document.getElementById('codeList'),
@@ -126,6 +132,35 @@ async function runConfirmAction() {
 
 function hideModal(modal) {
   modal.hidden = true
+}
+
+/** 关闭弹窗并清空对应表单，避免下次打开残留上次输入 */
+function closeModal(modalId) {
+  const modal = document.getElementById(modalId)
+  if (modal) modal.hidden = true
+  if (modalId === 'loginModal') clearLoginForm()
+  if (modalId === 'registerModal') clearRegisterForm()
+}
+
+function clearLoginForm() {
+  dom.loginUsername.value = ''
+  dom.loginPassword.value = ''
+  dom.loginCaptcha.value = ''
+  dom.smsPhone.value = ''
+  dom.smsCode.value = ''
+  dom.loginError.textContent = ''
+  state.captcha = null
+  dom.captchaImage.removeAttribute('src')
+}
+
+function clearRegisterForm() {
+  dom.regUsername.value = ''
+  dom.regPassword.value = ''
+  dom.regConfirm.value = ''
+  dom.regPhone.value = ''
+  dom.regNickname.value = ''
+  dom.regSmsCode.value = ''
+  dom.regError.textContent = ''
 }
 
 function featuredCountOf(dictType) {
@@ -339,6 +374,70 @@ async function loadAds() {
   scheduleAdRotation()
 }
 
+/** 构建单张改枪码卡片（列表与个人主页复用） */
+function createCodeCard(item) {
+  const card = document.createElement('article')
+  card.className = 'card'
+
+  const head = document.createElement('div')
+  head.className = 'card__head'
+
+  const title = document.createElement('div')
+  title.className = 'card__title'
+
+  const gun = document.createElement('span')
+  gun.className = 'card__gun'
+  gun.textContent = item.gunLabel
+  title.append(gun)
+
+  if (item.isFeatured) {
+    const tag = document.createElement('span')
+    tag.className = 'tag'
+    tag.textContent = '精选'
+    title.append(tag)
+  } else if (state.view !== 'featured') {
+    const pendingTag = document.createElement('span')
+    pendingTag.className = 'tag tag--pending'
+    pendingTag.textContent = '待精选'
+    title.append(pendingTag)
+  }
+
+  const copyButton = document.createElement('button')
+  copyButton.type = 'button'
+  copyButton.className = 'card__copy'
+  copyButton.textContent = '复制'
+  copyButton.addEventListener('click', async () => {
+    await window.desktop.copy(item.code)
+    copyButton.textContent = '已复制'
+    showToast('改枪码已复制到剪贴板')
+    setTimeout(() => {
+      copyButton.textContent = '复制'
+    }, 1500)
+  })
+
+  head.append(title, copyButton)
+
+  const codeElement = document.createElement('code')
+  codeElement.className = 'card__code'
+  codeElement.textContent = item.code
+
+  const remark = document.createElement('p')
+  remark.className = 'card__remark'
+
+  const remarkLabel = document.createElement('span')
+  remarkLabel.className = 'card__remark-label'
+  remarkLabel.textContent = '备注'
+
+  const remarkText = document.createElement('span')
+  remarkText.className = 'card__remark-text'
+  if (!item.remark) remarkText.classList.add('is-empty')
+  remarkText.textContent = item.remark || '暂无备注'
+
+  remark.append(remarkLabel, remarkText)
+  card.append(head, codeElement, remark)
+  return card
+}
+
 function renderCodes() {
   const keyword = state.keyword.trim().toLowerCase()
   const allCodes = codesOf(state.selectedType, state.selectedGun)
@@ -363,68 +462,7 @@ function renderCodes() {
 
   dom.codeList.replaceChildren()
 
-  for (const item of codes) {
-    const card = document.createElement('article')
-    card.className = 'card'
-
-    const head = document.createElement('div')
-    head.className = 'card__head'
-
-    const title = document.createElement('div')
-    title.className = 'card__title'
-
-    const gun = document.createElement('span')
-    gun.className = 'card__gun'
-    gun.textContent = item.gunLabel
-    title.append(gun)
-
-    if (item.isFeatured) {
-      const tag = document.createElement('span')
-      tag.className = 'tag'
-      tag.textContent = '精选'
-      title.append(tag)
-    } else if (state.view === 'mine') {
-      const pendingTag = document.createElement('span')
-      pendingTag.className = 'tag tag--pending'
-      pendingTag.textContent = '待精选'
-      title.append(pendingTag)
-    }
-
-    const copyButton = document.createElement('button')
-    copyButton.type = 'button'
-    copyButton.className = 'card__copy'
-    copyButton.textContent = '复制'
-    copyButton.addEventListener('click', async () => {
-      await window.desktop.copy(item.code)
-      copyButton.textContent = '已复制'
-      showToast('改枪码已复制到剪贴板')
-      setTimeout(() => {
-        copyButton.textContent = '复制'
-      }, 1500)
-    })
-
-    head.append(title, copyButton)
-
-    const codeElement = document.createElement('code')
-    codeElement.className = 'card__code'
-    codeElement.textContent = item.code
-
-    const remark = document.createElement('p')
-    remark.className = 'card__remark'
-
-    const remarkLabel = document.createElement('span')
-    remarkLabel.className = 'card__remark-label'
-    remarkLabel.textContent = '备注'
-
-    const remarkText = document.createElement('span')
-    remarkText.className = 'card__remark-text'
-    if (!item.remark) remarkText.classList.add('is-empty')
-    remarkText.textContent = item.remark || '暂无备注'
-
-    remark.append(remarkLabel, remarkText)
-    card.append(head, codeElement, remark)
-    dom.codeList.append(card)
-  }
+  for (const item of codes) dom.codeList.append(createCodeCard(item))
 }
 
 function renderAll() {
@@ -452,20 +490,218 @@ function switchView(view) {
   }
   state.view = view
   state.selectedGun = ''
+  // 从个人主页进入「我的提交」时，切到第一个有本人投稿的分类，避免落在空分类
+  if (view === 'mine' && state.user) {
+    const hasInCurrent = state.mine.some((record) => record.isMine && record.dictType === state.selectedType)
+    if (!hasInCurrent) {
+      const firstWithCode = state.types.find((typeItem) => state.mine.some((record) => record.isMine && record.dictType === typeItem.dictType))
+      if (firstWithCode) state.selectedType = firstWithCode.dictType
+    }
+  }
   for (const button of dom.viewSwitch.querySelectorAll('.view-switch__item')) {
     button.classList.toggle('is-active', button.dataset.view === view)
   }
+  // 离开个人主页时清掉其 DOM，避免隐藏卡片被误计入列表
+  if (view !== 'profile') dom.profileView.replaceChildren()
+  applyViewVisibility()
   renderAll()
+}
+
+/** 根据当前视图显隐各区块：个人主页时隐藏筛选与列表 */
+function applyViewVisibility() {
+  const isProfile = state.view === 'profile'
+  const loggedIn = Boolean(state.user)
+  dom.profileView.hidden = !isProfile
+  dom.typesAside.hidden = isProfile
+  dom.adSlot.hidden = isProfile
+  dom.gunList.hidden = isProfile
+  dom.searchBar.hidden = isProfile
+  dom.codeList.hidden = isProfile
+  dom.viewSwitch.hidden = !loggedIn || isProfile
+  dom.toolbar.hidden = !loggedIn || isProfile
 }
 
 function updateAuthUi() {
   const loggedIn = Boolean(state.user)
   dom.loginBtn.hidden = loggedIn
   dom.userBox.hidden = !loggedIn
-  dom.viewSwitch.hidden = !loggedIn
-  // 未登录时工具栏里没有内容，整行隐藏，避免留白
-  dom.toolbar.hidden = !loggedIn
   if (loggedIn) dom.userName.textContent = state.user.nickname || state.user.username
+  if (!loggedIn && state.view === 'profile') {
+    state.view = 'featured'
+    state.profile = null
+  }
+  applyViewVisibility()
+}
+
+/** 手机号脱敏：138****0000 */
+function maskPhone(phone) {
+  if (!phone || phone.length < 7) return phone || ''
+  return `${phone.slice(0, 3)}****${phone.slice(-4)}`
+}
+
+/** 打开个人主页：拉取用户资料、我的投稿与收藏数 */
+async function openProfile() {
+  if (!state.user) {
+    openLoginModal()
+    return
+  }
+  state.view = 'profile'
+  applyViewVisibility()
+  renderProfileLoading()
+
+  try {
+    // 先取资料（会重建角色/权限缓存），再并行取投稿与收藏，避免缓存未就绪被 401
+    const profile = await window.desktop.getProfile()
+    const [mine, favorites] = await Promise.all([window.desktop.listMine(), window.desktop.getFavorites()])
+    state.profile = profile
+    state.mine = mine.records ?? []
+    state.favoriteCount = Array.isArray(favorites) ? favorites.length : 0
+  } catch (error) {
+    renderProfileError(normalizeError(error))
+    return
+  }
+  renderProfile()
+}
+
+function renderProfileLoading() {
+  dom.profileView.replaceChildren()
+  const loading = document.createElement('p')
+  loading.className = 'profile__meta'
+  loading.textContent = '个人信息加载中…'
+  dom.profileView.append(loading)
+}
+
+function renderProfileError(message) {
+  dom.profileView.replaceChildren()
+  const wrapper = document.createElement('div')
+  wrapper.className = 'placeholder'
+  const title = document.createElement('p')
+  title.className = 'placeholder__title'
+  title.textContent = '个人信息加载失败'
+  const desc = document.createElement('p')
+  desc.className = 'placeholder__desc'
+  desc.textContent = message
+  wrapper.append(title, desc)
+  dom.profileView.append(wrapper)
+}
+
+function renderProfile() {
+  if (!state.profile) return
+  const { user, roles = [] } = state.profile
+  const nickname = user.nickname || user.username
+  const featuredCount = state.mine.filter((record) => record.isFeatured === '1').length
+
+  dom.profileView.replaceChildren()
+
+  // 头部
+  const header = document.createElement('div')
+  header.className = 'profile__header'
+
+  const avatar = document.createElement('div')
+  avatar.className = 'profile__avatar'
+  avatar.textContent = String(nickname || '?').slice(0, 1).toUpperCase()
+
+  const info = document.createElement('div')
+  const name = document.createElement('h2')
+  name.className = 'profile__name'
+  name.textContent = nickname
+
+  const meta = document.createElement('p')
+  meta.className = 'profile__meta'
+  const metaParts = [`@${user.username}`]
+  if (user.phone) metaParts.push(maskPhone(user.phone))
+  if (user.createTime) metaParts.push(`加入于 ${String(user.createTime).slice(0, 10)}`)
+  meta.textContent = metaParts.join(' · ')
+
+  const roleBox = document.createElement('div')
+  roleBox.className = 'profile__roles'
+  for (const role of roles) {
+    const tag = document.createElement('span')
+    tag.className = 'profile__role'
+    tag.textContent = role === 'admin' ? '管理员' : role === 'common' ? '普通用户' : role
+    roleBox.append(tag)
+  }
+
+  info.append(name, meta, roleBox)
+  header.append(avatar, info)
+
+  // 统计
+  const stats = document.createElement('div')
+  stats.className = 'profile__stats'
+  for (const stat of [
+    { label: '我的投稿', value: state.mine.length },
+    { label: '已精选', value: featuredCount },
+    { label: '我的收藏', value: state.favoriteCount },
+  ]) {
+    const card = document.createElement('div')
+    card.className = 'profile__stat'
+    const value = document.createElement('p')
+    value.className = 'profile__stat-value'
+    value.textContent = String(stat.value)
+    const label = document.createElement('p')
+    label.className = 'profile__stat-label'
+    label.textContent = stat.label
+    card.append(value, label)
+    stats.append(card)
+  }
+
+  // 最近投稿
+  const section = document.createElement('div')
+  section.className = 'profile__section'
+  const sectionHead = document.createElement('div')
+  sectionHead.className = 'profile__section-head'
+  const sectionTitle = document.createElement('h3')
+  sectionTitle.className = 'profile__section-title'
+  sectionTitle.textContent = '最近投稿'
+  const moreButton = document.createElement('button')
+  moreButton.type = 'button'
+  moreButton.className = 'button button--ghost'
+  moreButton.textContent = '查看全部'
+  moreButton.addEventListener('click', () => switchView('mine'))
+  sectionHead.append(sectionTitle, moreButton)
+
+  const recent = state.mine.slice(0, 5)
+  if (recent.length) {
+    const list = document.createElement('div')
+    list.className = 'list'
+    for (const record of recent) {
+      list.append(
+        createCodeCard({
+          id: record.id,
+          code: record.code,
+          remark: record.remark,
+          gunLabel: record.gunLabel,
+          isFeatured: record.isFeatured === '1',
+        }),
+      )
+    }
+    section.append(sectionHead, list)
+  } else {
+    const empty = document.createElement('p')
+    empty.className = 'profile__meta'
+    empty.textContent = '还没有提交过改枪码'
+    section.append(sectionHead, empty)
+  }
+
+  // 操作
+  const actions = document.createElement('div')
+  actions.className = 'profile__actions'
+
+  const submitButton = document.createElement('button')
+  submitButton.type = 'button'
+  submitButton.className = 'button button--primary'
+  submitButton.textContent = '提交改枪码'
+  submitButton.addEventListener('click', openSubmitModal)
+
+  const backButton = document.createElement('button')
+  backButton.type = 'button'
+  backButton.className = 'button button--ghost'
+  backButton.textContent = '返回精选'
+  backButton.addEventListener('click', () => switchView('featured'))
+
+  actions.append(submitButton, backButton)
+
+  dom.profileView.append(header, stats, section, actions)
 }
 
 async function loadMine() {
@@ -532,10 +768,7 @@ async function refreshCaptcha() {
 }
 
 async function openLoginModal() {
-  dom.loginUsername.value = ''
-  dom.loginPassword.value = ''
-  dom.loginCaptcha.value = ''
-  dom.loginError.textContent = ''
+  clearLoginForm()
   showModal(dom.loginModal)
   dom.loginUsername.focus()
   await refreshCaptcha()
@@ -608,7 +841,7 @@ async function handleSmsLogin() {
   try {
     const user = await window.desktop.loginBySms({ phone, code })
     state.user = user
-    hideModal(dom.loginModal)
+    closeModal('loginModal')
     updateAuthUi()
     showToast(`欢迎回来，${user.nickname || user.username}`)
     await loadMine()
@@ -643,7 +876,7 @@ async function handleLogin() {
   try {
     const user = await window.desktop.login({ username, password, captcha, uuid: state.captcha?.uuid ?? '' })
     state.user = user
-    hideModal(dom.loginModal)
+    closeModal('loginModal')
     updateAuthUi()
     showToast(`欢迎回来，${user.nickname || user.username}`)
     await loadMine()
@@ -675,14 +908,8 @@ function handleLogout() {
 /* ---------------- 注册 ---------------- */
 
 function openRegisterModal() {
-  hideModal(dom.loginModal)
-  dom.regUsername.value = ''
-  dom.regPassword.value = ''
-  dom.regConfirm.value = ''
-  dom.regPhone.value = ''
-  dom.regNickname.value = ''
-  dom.regSmsCode.value = ''
-  dom.regError.textContent = ''
+  closeModal('loginModal')
+  clearRegisterForm()
   showModal(dom.registerModal)
   dom.regUsername.focus()
 }
@@ -727,7 +954,7 @@ async function handleRegister() {
       smsCode,
     })
     state.user = user
-    hideModal(dom.registerModal)
+    closeModal('registerModal')
     updateAuthUi()
     showToast(`欢迎加入，${user.nickname || user.username}`)
     await loadMine()
@@ -867,16 +1094,18 @@ async function bootstrap() {
   }
 
   for (const element of document.querySelectorAll('[data-close]')) {
-    element.addEventListener('click', () => hideModal(document.getElementById(element.dataset.close)))
+    element.addEventListener('click', () => closeModal(element.dataset.close))
   }
 
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
-      hideModal(dom.loginModal)
-      hideModal(dom.registerModal)
+      closeModal('loginModal')
+      closeModal('registerModal')
       hideModal(dom.submitModal)
     }
   })
+
+  dom.userName.addEventListener('click', openProfile)
 
   // 登录框内回车直接提交
   for (const input of [dom.loginUsername, dom.loginPassword, dom.loginCaptcha]) {
