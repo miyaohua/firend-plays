@@ -6,7 +6,8 @@ if (!process.versions.electron) {
   process.exit(1)
 }
 
-const { app, BrowserWindow, Menu, clipboard, ipcMain, shell } = require('electron')
+const { app, BrowserWindow, Menu, clipboard, ipcMain, shell, safeStorage } = require('electron')
+const fs = require('node:fs')
 const path = require('node:path')
 
 /** 接口地址：优先命令行 --api-base=xxx，其次环境变量 DESKTOP_API_BASE，最后本地默认 */
@@ -24,6 +25,85 @@ const SITE_URL = process.env.DESKTOP_SITE_URL || 'http://localhost:5173'
 /** 当前登录会话：令牌只保存在主进程，渲染进程拿不到 */
 let session = null
 
+/** 是否记住登录（默认开启，偏好持久化） */
+let rememberLogin = true
+
+/** 本地会话与偏好文件 */
+const sessionFile = () => path.join(app.getPath('userData'), 'session.bin')
+const prefsFile = () => path.join(app.getPath('userData'), 'prefs.json')
+
+function loadPrefs() {
+  try {
+    const prefs = JSON.parse(fs.readFileSync(prefsFile(), 'utf8'))
+    if (typeof prefs.rememberLogin === 'boolean') rememberLogin = prefs.rememberLogin
+  } catch {
+    // 无偏好文件时使用默认值
+  }
+}
+
+function savePrefs() {
+  try {
+    fs.writeFileSync(prefsFile(), JSON.stringify({ rememberLogin }), 'utf8')
+  } catch {
+    // 偏好写入失败不影响登录
+  }
+}
+
+/** 加密保存 refreshToken（accessToken 不落盘） */
+function persistSession() {
+  if (!rememberLogin || !session?.refreshToken || !safeStorage.isEncryptionAvailable()) return
+  try {
+    const encrypted = safeStorage.encryptString(JSON.stringify({ refreshToken: session.refreshToken, savedAt: Date.now() }))
+    fs.writeFileSync(sessionFile(), encrypted, { mode: 0o600 })
+  } catch {
+    // 系统不支持加密存储时退化为不记住
+  }
+}
+
+function clearPersistedSession() {
+  try {
+    fs.unlinkSync(sessionFile())
+  } catch {
+    // 文件不存在时忽略
+  }
+}
+
+/** 启动时用本地 refreshToken 恢复登录态（一次） */
+let restorePromise = null
+async function restoreSession() {
+  if (session?.user) return
+  if (restorePromise) return restorePromise
+
+  restorePromise = (async () => {
+    if (!rememberLogin || !safeStorage.isEncryptionAvailable()) return
+    try {
+      if (!fs.existsSync(sessionFile())) return
+      const decrypted = safeStorage.decryptString(fs.readFileSync(sessionFile()))
+      const data = JSON.parse(decrypted)
+      if (!data?.refreshToken) return
+
+      session = { accessToken: '', refreshToken: data.refreshToken, user: null }
+      if (!(await refreshSession())) {
+        clearPersistedSession()
+        return
+      }
+      const info = await requestApi('/auth/getInfo', { auth: true })
+      session.user = {
+        username: info.user.username,
+        nickname: info.user.nickname,
+        roles: info.roles,
+        permissions: info.permissions,
+      }
+      persistSession()
+    } catch {
+      session = null
+      clearPersistedSession()
+    }
+  })()
+
+  return restorePromise
+}
+
 /** 用 refreshToken 换新令牌；失败则清空会话 */
 async function refreshSession() {
   if (!session?.refreshToken) return false
@@ -37,13 +117,16 @@ async function refreshSession() {
     const payload = await response.json()
     if (payload.code !== 200) {
       session = null
+      clearPersistedSession()
       return false
     }
     session.accessToken = payload.data.accessToken
     session.refreshToken = payload.data.refreshToken
+    persistSession()
     return true
   } catch {
     session = null
+    clearPersistedSession()
     return false
   }
 }
@@ -84,7 +167,10 @@ async function requestApi(requestPath, options = {}) {
   }
 
   if (payload.code !== 200) {
-    if (auth && payload.code === 401) session = null
+    if (auth && payload.code === 401) {
+      session = null
+      clearPersistedSession()
+    }
     throw new Error(payload.message || `接口返回异常（HTTP ${response.status}）`)
   }
   return payload.data
@@ -133,6 +219,7 @@ ipcMain.handle('app:config', () => ({
   platform: process.platform,
   adContact: process.env.DESKTOP_AD_CONTACT || '2542571191@qq.com',
   siteUrl: SITE_URL,
+  rememberLogin,
 }))
 
 /** 公开接口（分类选项、精选列表） */
@@ -140,7 +227,12 @@ ipcMain.handle('api:request', (_event, requestPath) => requestApi(requestPath))
 
 /** 登录：先登录拿令牌，再拉一次 getInfo 预热角色/权限缓存，否则受保护接口会 fail-closed */
 ipcMain.handle('auth:login', async (_event, credentials) => {
-  const tokens = await requestApi('/auth/login', { method: 'POST', body: credentials })
+  const { remember, ...payload } = credentials
+  rememberLogin = remember !== false
+  savePrefs()
+  if (!rememberLogin) clearPersistedSession()
+
+  const tokens = await requestApi('/auth/login', { method: 'POST', body: payload })
   session = { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, user: null }
 
   const info = await requestApi('/auth/getInfo', { auth: true })
@@ -150,6 +242,7 @@ ipcMain.handle('auth:login', async (_event, credentials) => {
     roles: info.roles,
     permissions: info.permissions,
   }
+  persistSession()
   return currentSession()
 })
 
@@ -161,7 +254,11 @@ ipcMain.handle('auth:sendSms', (_event, payload = {}) => {
 })
 
 ipcMain.handle('auth:loginBySms', async (_event, payload = {}) => {
-  const { phone, code } = payload
+  const { phone, code, remember } = payload
+  rememberLogin = remember !== false
+  savePrefs()
+  if (!rememberLogin) clearPersistedSession()
+
   const tokens = await requestApi('/auth/login/sms', { method: 'POST', body: { phone, code } })
   session = { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, user: null }
 
@@ -172,6 +269,7 @@ ipcMain.handle('auth:loginBySms', async (_event, payload = {}) => {
     roles: info.roles,
     permissions: info.permissions,
   }
+  persistSession()
   return currentSession()
 })
 
@@ -181,6 +279,8 @@ ipcMain.handle('auth:resetPassword', (_event, payload = {}) => {
 })
 
 ipcMain.handle('auth:register', async (_event, form) => {
+  rememberLogin = true
+  savePrefs()
   const tokens = await requestApi('/auth/register', { method: 'POST', body: form })
   session = { accessToken: tokens.accessToken, refreshToken: tokens.refreshToken, user: null }
 
@@ -191,6 +291,7 @@ ipcMain.handle('auth:register', async (_event, form) => {
     roles: info.roles,
     permissions: info.permissions,
   }
+  persistSession()
   return currentSession()
 })
 
@@ -203,10 +304,14 @@ ipcMain.handle('auth:logout', async () => {
     }
   }
   session = null
+  clearPersistedSession()
   return true
 })
 
-ipcMain.handle('auth:session', () => currentSession())
+ipcMain.handle('auth:session', async () => {
+  await restoreSession()
+  return currentSession()
+})
 
 /** 个人资料（同时刷新鉴权缓存） */
 ipcMain.handle('auth:profile', () => requestApi('/auth/getInfo', { auth: true }))
@@ -314,7 +419,10 @@ ipcMain.handle('clipboard:write', (_event, text) => {
   return true
 })
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  loadPrefs()
+  // 最多等 3 秒，接口不可达时不阻塞窗口启动
+  await Promise.race([restoreSession(), new Promise((resolve) => setTimeout(resolve, 3000))])
   Menu.setApplicationMenu(null)
   createWindow()
 

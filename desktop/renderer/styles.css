@@ -1213,3 +1213,22 @@ body {
 .notice-item__content a {
   color: #2563eb;
 }
+
+/* 记住登录 */
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -4px 0 14px;
+  font-size: 12px;
+  color: #6b7280;
+  cursor: pointer;
+  user-select: none;
+}
+
+.remember-row input {
+  width: 14px;
+  height: 14px;
+  accent-color: #2563eb;
+  cursor: pointer;
+}

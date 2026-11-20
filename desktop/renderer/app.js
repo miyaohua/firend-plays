@@ -65,6 +65,7 @@ const dom = {
   captchaImage: document.getElementById('captchaImage'),
   loginError: document.getElementById('loginError'),
   loginSubmit: document.getElementById('loginSubmit'),
+  rememberLogin: document.getElementById('rememberLogin'),
   registerModal: document.getElementById('registerModal'),
   regUsername: document.getElementById('regUsername'),
   regPassword: document.getElementById('regPassword'),
@@ -1464,7 +1465,7 @@ async function handleSmsLogin() {
 
   dom.loginSubmit.disabled = true
   try {
-    const user = await window.desktop.loginBySms({ phone, code })
+    const user = await window.desktop.loginBySms({ phone, code, remember: dom.rememberLogin.checked })
     state.user = user
     closeModal('loginModal')
     updateAuthUi()
@@ -1500,7 +1501,7 @@ async function handleLogin() {
 
   dom.loginSubmit.disabled = true
   try {
-    const user = await window.desktop.login({ username, password, captcha, uuid: state.captcha?.uuid ?? '' })
+    const user = await window.desktop.login({ username, password, captcha, uuid: state.captcha?.uuid ?? '', remember: dom.rememberLogin.checked })
     state.user = user
     closeModal('loginModal')
     updateAuthUi()
@@ -1685,6 +1686,7 @@ async function bootstrap() {
   state.version = config.version
   state.adContact = config.adContact || state.adContact
   state.siteUrl = config.siteUrl || state.siteUrl
+  dom.rememberLogin.checked = config.rememberLogin !== false
   dom.version.textContent = `v${config.version}`
   dom.aboutVersion.textContent = `版本：${config.version}`
   dom.aboutApi.textContent = `接口地址：${config.apiBase}`
