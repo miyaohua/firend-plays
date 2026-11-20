@@ -764,9 +764,8 @@ function applyViewVisibility() {
   dom.gunList.hidden = isProfile
   dom.searchBar.hidden = isProfile
   dom.codeList.hidden = isProfile
-  dom.viewSwitch.hidden = isProfile
-  dom.toolbar.hidden = isProfile
-  for (const button of dom.viewSwitch.querySelectorAll('[data-auth-only]')) button.hidden = !loggedIn
+  dom.viewSwitch.hidden = !loggedIn || isProfile
+  dom.toolbar.hidden = !loggedIn || isProfile
 }
 
 function updateAuthUi() {
