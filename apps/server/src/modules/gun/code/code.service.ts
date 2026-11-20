@@ -6,7 +6,7 @@ import { RedisService } from '@/shared/redis.service'
 import { InjectRepository } from '@nestjs/typeorm'
 import { UserService } from '../../system/user/user.service'
 import { BusinessException, CommonConstant, DictDataEntity, DictTypeEntity, GunCodeEntity, GunCodeFavoriteEntity, GunCodeFeedbackEntity, RbacConstant, RedisConstant } from '@/common'
-import { AnchorGunCodeDto, CreateFeedbackDto, CreateGunCodeDto, FeaturedGunCodeDto, HandleFeedbackDto, QueryFeedbackDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
+import { CreateFeedbackDto, CreateGunCodeDto, FeaturedGunCodeDto, HandleFeedbackDto, QueryFeedbackDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
 
 /** 公开精选接口返回的分组结构 */
 export interface FeaturedGroupView {
@@ -37,18 +37,12 @@ export interface FeaturedCodeView {
   remark: string | null
   author: string
   featuredTime: string | null
-  isFeatured: string
-  isAnchor: string
-  anchorTime: string | null
 }
 
 @Injectable()
 export class GunCodeService {
   /** 公开精选列表的响应缓存键，须与控制器 @ResponseCache 的 key 保持一致 */
   private readonly FEATURED_CACHE_KEY = `${RedisConstant.RESPONSE_CACHE}:gun:code:featured`
-
-  /** 公开主播改枪码接口的响应缓存键，须与控制器 @ResponseCache 的 key 保持一致 */
-  private readonly ANCHOR_CACHE_KEY = `${RedisConstant.RESPONSE_CACHE}:gun:code:anchor`
 
   /** 公开统计接口的响应缓存键，须与控制器 @ResponseCache 的 key 保持一致 */
   private readonly STATISTICS_CACHE_KEY = `${RedisConstant.RESPONSE_CACHE}:gun:code:statistics`
@@ -98,7 +92,6 @@ export class GunCodeService {
       userId: currentUser.userId,
       username: currentUser.username,
       isFeatured: CommonConstant.STATUS_DISABLE,
-      isAnchor: CommonConstant.STATUS_DISABLE,
     })
     await this.gunCodeRepository.save(entity)
     await this.invalidatePublicCaches()
@@ -119,7 +112,6 @@ export class GunCodeService {
     if (isSuperAdmin) {
       if (queryParams.scope === 'mine') queryBuilder.andWhere('gunCode.userId = :userId', { userId: currentUser.userId })
       if (queryParams.scope === 'featured') queryBuilder.andWhere('gunCode.isFeatured = :isFeatured', { isFeatured: CommonConstant.STATUS_NORMAL })
-      if (queryParams.scope === 'anchor') queryBuilder.andWhere('gunCode.isAnchor = :isAnchor', { isAnchor: CommonConstant.STATUS_NORMAL })
     } else {
       queryBuilder.andWhere('(gunCode.userId = :userId OR gunCode.isFeatured = :isFeatured)', { userId: currentUser.userId, isFeatured: CommonConstant.STATUS_NORMAL })
     }
@@ -143,26 +135,18 @@ export class GunCodeService {
     }
 
     const wasFeatured = record.isFeatured === CommonConstant.STATUS_NORMAL
-    const wasAnchor = record.isAnchor === CommonConstant.STATUS_NORMAL
     record.code = updateDto.code ?? record.code
     record.remark = updateDto.remark ?? record.remark
-    // 内容被修改后不再代表原先的推荐方案，自动取消精选 / 主播标记
+    // 内容被修改后不再代表原先被精选的方案，自动取消精选
     if (wasFeatured) {
       record.isFeatured = CommonConstant.STATUS_DISABLE
       record.featuredBy = null
       record.featuredTime = null
     }
-    if (wasAnchor) {
-      record.isAnchor = CommonConstant.STATUS_DISABLE
-      record.anchorTime = null
-    }
     await this.gunCodeRepository.save(record)
 
-    if (wasFeatured || wasAnchor) await this.invalidatePublicCaches()
-    if (wasFeatured && wasAnchor) return '修改成功，已自动取消精选与主播标记'
-    if (wasFeatured) return '修改成功，已自动取消精选'
-    if (wasAnchor) return '修改成功，已自动取消主播标记'
-    return '修改成功'
+    if (wasFeatured) await this.invalidatePublicCaches()
+    return wasFeatured ? '修改成功，已自动取消精选' : '修改成功'
   }
 
   /** 删除改枪码：本人或超管可删；命中精选时同步失效公开缓存 */
@@ -285,32 +269,13 @@ export class GunCodeService {
     return isFeatured ? '已设为精选' : '已取消精选'
   }
 
-  /** 主播推荐 / 取消（仅超管可用），写后立刻失效公开缓存 */
-  public async setAnchor(anchorDto: AnchorGunCodeDto, operatorId: string): Promise<string> {
-    const record = await this.gunCodeRepository.findOneBy({ id: Equal(anchorDto.id) })
-    if (!record) throw new BusinessException('改枪码不存在')
-
-    const isAnchor = anchorDto.isAnchor === CommonConstant.STATUS_NORMAL
-    record.isAnchor = anchorDto.isAnchor
-    record.anchorTime = isAnchor ? new Date() : null
-    await this.gunCodeRepository.save(record)
-
-    await this.invalidatePublicCaches()
-    return isAnchor ? '已设为主播改枪码' : '已取消主播改枪码'
-  }
-
   /** 公开精选列表：无需登录，按分类 → 枪械分组返回，不含用户 ID 等敏感字段 */
   public async findFeaturedPublic(): Promise<FeaturedGroupView[]> {
     return this.findPublicGrouped({ isFeatured: CommonConstant.STATUS_NORMAL })
   }
 
-  /** 公开主播改枪码：与精选同结构，数据源为 isAnchor */
-  public async findAnchorPublic(): Promise<FeaturedGroupView[]> {
-    return this.findPublicGrouped({ isAnchor: CommonConstant.STATUS_NORMAL })
-  }
-
-  /** 公开推荐列表分组（精选 / 主播共用） */
-  private async findPublicGrouped(where: { isFeatured: string } | { isAnchor: string }): Promise<FeaturedGroupView[]> {
+  /** 公开精选列表分组 */
+  private async findPublicGrouped(where: { isFeatured: string }): Promise<FeaturedGroupView[]> {
     const records = await this.gunCodeRepository.find({
       where,
       order: { createTime: 'DESC' },
@@ -347,9 +312,6 @@ export class GunCodeService {
         remark: record.remark || null,
         author: this.maskUsername(record.username),
         featuredTime: this.formatTime(record.featuredTime),
-        isFeatured: record.isFeatured,
-        isAnchor: record.isAnchor,
-        anchorTime: this.formatTime(record.anchorTime),
       })
     }
 
@@ -398,8 +360,6 @@ export class GunCodeService {
       isMine,
       isFeatured: record.isFeatured,
       featuredTime: this.formatTime(record.featuredTime),
-      isAnchor: record.isAnchor,
-      anchorTime: this.formatTime(record.anchorTime),
       createTime: this.formatTime(record.createTime),
     }
   }
@@ -477,7 +437,7 @@ export class GunCodeService {
 
   /** 失效公开接口缓存（精选列表 + 首页统计）：数据变更后官网需立即看到新数据 */
   private async invalidatePublicCaches(): Promise<void> {
-    await this.redisService.del(this.FEATURED_CACHE_KEY, this.ANCHOR_CACHE_KEY, this.STATISTICS_CACHE_KEY)
+    await this.redisService.del(this.FEATURED_CACHE_KEY, this.STATISTICS_CACHE_KEY)
   }
 
   /** 账号打码（保留首字符），避免公开接口泄露完整账号 */

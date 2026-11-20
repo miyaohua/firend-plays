@@ -3,7 +3,6 @@ const state = {
   version: '',
   types: [],
   featured: [],
-  anchor: [],
   mine: [],
   mineError: '',
   selectedType: '',
@@ -260,10 +259,6 @@ function featuredCountOf(dictType) {
 function countOf(dictType) {
   if (state.view === 'mine') return state.mine.filter((record) => record.isMine && record.dictType === dictType).length
   if (state.view === 'favorite') return state.favorites.filter((record) => record.dictType === dictType).length
-  if (state.view === 'anchor') {
-    const group = state.anchor.find((item) => item.dictType === dictType)
-    return (group?.guns ?? []).reduce((sum, gun) => sum + gun.codes.length, 0)
-  }
   return featuredCountOf(dictType)
 }
 
@@ -281,13 +276,6 @@ function codesOf(dictType, gunValue) {
         isFeatured: record.isFeatured === '1',
         isMine: true,
       }))
-  }
-
-  if (state.view === 'anchor') {
-    const group = state.anchor.find((item) => item.dictType === dictType)
-    if (!group) return []
-    const guns = gunValue ? group.guns.filter((gun) => gun.gunValue === gunValue) : group.guns
-    return guns.flatMap((gun) => gun.codes.map((item) => ({ ...item, gunLabel: gun.gunLabel, isMine: false })))
   }
 
   if (state.view === 'favorite') {
@@ -584,13 +572,7 @@ function createCodeCard(item) {
     tag.textContent = '精选'
     title.append(tag)
   }
-  if (item.isAnchor) {
-    const anchorTag = document.createElement('span')
-    anchorTag.className = 'tag tag--anchor'
-    anchorTag.textContent = '主播'
-    title.append(anchorTag)
-  }
-  if (!item.isFeatured && !item.isAnchor && state.view !== 'featured') {
+  if (!item.isFeatured && state.view !== 'featured') {
     const pendingTag = document.createElement('span')
     pendingTag.className = 'tag tag--pending'
     pendingTag.textContent = '待精选'
@@ -654,7 +636,7 @@ function createCodeCard(item) {
   }
 
   // 精选视图允许反馈「改枪码无效」
-  if ((state.view === 'featured' || state.view === 'anchor') && !item.isMine) {
+  if (state.view === 'featured' && !item.isMine) {
     const feedbackButton = document.createElement('button')
     feedbackButton.type = 'button'
     feedbackButton.className = 'card__mini'
@@ -708,7 +690,6 @@ function renderCodes() {
     const emptyTexts = {
       mine: ['还没有提交过改枪码', `点击右上角「提交改枪码」，为${typeItem?.dictName ?? ''}${scopeText}录入你的方案`],
       favorite: ['还没有收藏改枪码', '在精选列表点卡片右上角的星标即可收藏'],
-      anchor: ['暂无主播改枪码', `${typeItem?.dictName ?? ''}${scopeText}下还没有主播推荐方案`],
       featured: ['暂无精选改枪码', `${typeItem?.dictName ?? ''}${scopeText}下还没有管理员精选的方案`],
     }
     const [title, description] = emptyTexts[state.view] ?? emptyTexts.featured
@@ -752,13 +733,6 @@ async function switchView(view) {
     if (!hasInCurrent) {
       const firstWithCode = state.types.find((typeItem) => state.mine.some((record) => record.isMine && record.dictType === typeItem.dictType))
       if (firstWithCode) state.selectedType = firstWithCode.dictType
-    }
-  }
-  if (view === 'anchor') {
-    const hasInCurrent = state.anchor.some((group) => group.dictType === state.selectedType && group.guns.some((gun) => gun.codes.length))
-    if (!hasInCurrent) {
-      const firstWithAnchor = state.types.find((typeItem) => state.anchor.some((group) => group.dictType === typeItem.dictType && group.guns.some((gun) => gun.codes.length)))
-      if (firstWithAnchor) state.selectedType = firstWithAnchor.dictType
     }
   }
   if (view === 'favorite' && state.user) {
@@ -1307,14 +1281,9 @@ async function loadData() {
   renderPlaceholder('加载中…', '正在从接口拉取精选改枪码')
 
   try {
-    const [types, featured, anchor] = await Promise.all([
-      window.desktop.request('/gun/code/options'),
-      window.desktop.request('/gun/code/featured'),
-      window.desktop.request('/gun/code/anchor'),
-    ])
+    const [types, featured] = await Promise.all([window.desktop.request('/gun/code/options'), window.desktop.request('/gun/code/featured')])
     state.types = types
     state.featured = featured
-    state.anchor = anchor
     setStatus('ok')
 
     if (!types.length) {

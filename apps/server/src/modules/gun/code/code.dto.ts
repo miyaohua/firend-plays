@@ -37,7 +37,7 @@ export class QueryGunCodeDto extends PaginationDto {
 
   /** 查看范围：mine 我的 / featured 精选 / all 全部（仅超管可用），普通用户固定为「我的 ∨ 精选」 */
   @IsOptional()
-  @IsIn(['mine', 'featured', 'anchor', 'all'], { message: '查看范围取值仅限 mine / featured / anchor / all' })
+  @IsIn(['mine', 'featured', 'all'], { message: '查看范围取值仅限 mine / featured / all' })
   scope: string
 
   /** 关键词：匹配改枪码或备注 */
@@ -94,13 +94,4 @@ export class HandleFeedbackDto {
   @IsOptional()
   @Length(1, 200, { message: '处理备注不能超过 200 个字符' })
   remark: string
-}
-
-/** 主播标记 */
-export class AnchorGunCodeDto {
-  @IsNotEmpty({ message: '改枪码 ID 不能为空' })
-  id: string
-
-  @IsIn(['1', '0'], { message: '主播标记仅支持 1 或 0' })
-  isAnchor: string
 }

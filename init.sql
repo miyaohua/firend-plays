@@ -630,9 +630,5 @@ INSERT INTO `sys_menu` VALUES ('2026-11-19 16:30:00', '2026-11-19 16:30:00', NUL
 -- ----------------------------
 INSERT INTO `sys_notice` VALUES ('2026-11-19 16:30:00', '2026-11-19 16:30:00', NULL, 'admin', 'admin', 'b1722513-357c-4843-b4b1-695c7b70d8ea', '欢迎使用改枪坊', '精选改枪码每日更新，欢迎在客户端收藏、复制或提交自己的方案。', 1, '1');
 
--- ----------------------------
--- Records of sys_menu（改枪码主播标记）
--- ----------------------------
-INSERT INTO `sys_menu` VALUES ('2026-11-20 11:20:00', '2026-11-20 11:20:00', NULL, 'admin', 'admin', 'bf1ecf89-aac0-4560-a83a-2e052eab6f80', 'c384cddd-468c-442a-912e-444a5713332f', NULL, NULL, 'F', NULL, '改枪码主播', '1', 'gun:code:anchor', '1', 6, '0', '1');
 
 SET FOREIGN_KEY_CHECKS = 1;

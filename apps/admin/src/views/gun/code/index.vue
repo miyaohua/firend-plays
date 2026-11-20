@@ -56,18 +56,14 @@
           <template #remark="{ row }">{{ row.remark || '-' }}</template>
           <template #isFeatured="{ row }">
             <el-tag v-if="row.isFeatured === '1'" type="warning">精选</el-tag>
-            <el-tag v-if="row.isAnchor === '1'" type="primary">主播</el-tag>
-            <el-tag v-if="row.isMine" type="info">我的</el-tag>
-            <span v-if="row.isFeatured !== '1' && row.isAnchor !== '1' && !row.isMine">-</span>
+            <el-tag v-else-if="row.isMine" type="info">我的</el-tag>
+            <span v-else>-</span>
           </template>
           <template #action="{ row }">
             <el-link v-if="row.isMine" v-permissions="['gun:code:update']" type="primary" @click="handleEdit(row as Gun.CodeItem)">修改</el-link>
             <el-link v-if="row.isMine || isSuperAdmin" v-permissions="['gun:code:delete']" type="primary" @click="handleDelete(row as Gun.CodeItem)">删除</el-link>
             <el-link v-if="isSuperAdmin" v-permissions="['gun:code:feature']" type="warning" @click="handleFeatured(row as Gun.CodeItem)">
               {{ row.isFeatured === '1' ? '取消精选' : '设为精选' }}
-            </el-link>
-            <el-link v-if="isSuperAdmin" v-permissions="['gun:code:anchor']" type="primary" @click="handleAnchor(row as Gun.CodeItem)">
-              {{ row.isAnchor === '1' ? '取消主播' : '设为主播' }}
             </el-link>
           </template>
         </ProTable>
@@ -131,7 +127,6 @@ const items = computed<ProSearchItem[]>(() => {
         { label: '全部', value: 'all' },
         { label: '我的', value: 'mine' },
         { label: '精选', value: 'featured' },
-        { label: '主播', value: 'anchor' },
       ],
     },
   ]
@@ -222,16 +217,6 @@ async function handleDelete(record?: Gun.CodeItem) {
   await GunCodeRequest.delete({ ids: targetIds.join(',') })
   TipModal.msgSuccess('删除成功')
   if (tableRef.value) tableRef.value.clearSelection?.()
-  getList()
-}
-
-/** 主播推荐 / 取消（仅超管可见） */
-async function handleAnchor(record: Gun.CodeItem) {
-  const willAnchor = record.isAnchor !== '1'
-  const { confirm } = await TipModal.confirm(willAnchor ? '确认将该改枪码设为「主播改枪码」？' : '确认取消该改枪码的主播标记？')
-  if (!confirm) return
-  await GunCodeRequest.setAnchor({ id: record.id, isAnchor: willAnchor ? '1' : '0' })
-  TipModal.msgSuccess(willAnchor ? '已设为主播改枪码' : '已取消主播标记')
   getList()
 }
 
