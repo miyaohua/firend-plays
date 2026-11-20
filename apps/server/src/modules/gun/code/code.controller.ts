@@ -3,7 +3,7 @@ import { GunCodeService } from './code.service'
 import { Body, Controller, Delete, Get, ParseArrayPipe, Post, Put, Query, Req } from '@nestjs/common'
 import { BusinessType, CurrentUser, Operlog, PaginationPipe, Public, RepeatSubmit, RequirePermissions, ResponseCache } from '@/common'
 import { getRequestIp } from '@/utils'
-import { CreateFeedbackDto, CreateGunCodeDto, FavoriteGunCodeDto, FeaturedGunCodeDto, HandleFeedbackDto, QueryFeedbackDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
+import { AnchorGunCodeDto, CreateFeedbackDto, CreateGunCodeDto, FavoriteGunCodeDto, FeaturedGunCodeDto, HandleFeedbackDto, QueryFeedbackDto, QueryGunCodeDto, UpdateGunCodeDto } from './code.dto'
 
 @Controller('gun/code')
 export class GunCodeController {
@@ -15,6 +15,14 @@ export class GunCodeController {
   @ResponseCache({ key: 'gun:code:featured', ttl: 120 })
   public findFeatured() {
     return this.gunCodeService.findFeaturedPublic()
+  }
+
+  /** 公开主播改枪码：无需登录，带响应缓存 */
+  @Public()
+  @Get('anchor')
+  @ResponseCache({ key: 'gun:code:anchor', ttl: 120 })
+  public findAnchor() {
+    return this.gunCodeService.findAnchorPublic()
   }
 
   /** 公开数据概览：改枪码总数、精选数、武器分类与枪械数量（首页使用） */
@@ -108,6 +116,14 @@ export class GunCodeController {
   @Operlog({ title: '改枪码反馈', businessType: BusinessType.UPDATE })
   public handleFeedback(@Body() handleDto: HandleFeedbackDto, @CurrentUser() currentUser: AuthType.JwtPayload) {
     return this.gunCodeService.handleFeedback(handleDto, currentUser)
+  }
+
+  /** 主播推荐 / 取消（仅超管） */
+  @Put('anchor')
+  @RequirePermissions(['gun:code:anchor'])
+  @Operlog({ title: '改枪码管理', businessType: BusinessType.UPDATE })
+  public setAnchor(@Body() anchorDto: AnchorGunCodeDto, @CurrentUser() currentUser: AuthType.JwtPayload) {
+    return this.gunCodeService.setAnchor(anchorDto, currentUser.userId)
   }
 
   /** 精选 / 取消精选（仅超管） */

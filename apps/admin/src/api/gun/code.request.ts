@@ -42,6 +42,11 @@ export class GunCodeRequest {
     return request.put('/gun/code/feedback/handle', data)
   }
 
+  /** 主播推荐 / 取消（仅超管） */
+  static setAnchor(data: { id: string; isAnchor: string }): Promise<string> {
+    return request.put('/gun/code/anchor', data)
+  }
+
   /** 公开数据概览（无需登录） */
   static findStatistics(): Promise<Gun.Statistics> {
     return request.get('/gun/code/statistics')

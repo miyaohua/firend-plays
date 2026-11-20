@@ -10,6 +10,7 @@ import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm'
 @Index('idx_gun_code_type', ['dictType', 'gunValue'])
 @Index('idx_gun_code_user', ['userId'])
 @Index('idx_gun_code_featured', ['isFeatured'])
+@Index('idx_gun_code_anchor', ['isAnchor'])
 export class GunCodeEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
@@ -43,4 +44,10 @@ export class GunCodeEntity extends BaseEntity {
 
   @Column({ name: 'featured_time', type: 'datetime', comment: '精选时间', nullable: true })
   featuredTime: Date
+
+  @Column({ name: 'is_anchor', type: 'char', length: 1, comment: '是否主播推荐（1 是 0 否）', default: CommonConstant.STATUS_DISABLE })
+  isAnchor: string
+
+  @Column({ name: 'anchor_time', type: 'datetime', comment: '主播推荐时间', nullable: true })
+  anchorTime: Date
 }

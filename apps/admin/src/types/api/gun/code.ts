@@ -17,6 +17,9 @@ export interface CodeItem extends BaseEntity {
   isMine: boolean
   /** 是否精选（1 是 / 0 否） */
   isFeatured: string
+  /** 是否主播推荐（1 是 / 0 否） */
+  isAnchor?: string
+  anchorTime?: string | null
   /** 精选时间 */
   featuredTime: string | null
   createTime: string

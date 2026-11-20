@@ -43,6 +43,16 @@
       </aside>
 
       <section class="content">
+        <!-- 顶部导航：精选 / 主播（公开），我的提交 / 我的收藏（登录后） -->
+        <div id="toolbar" class="toolbar">
+          <div id="viewSwitch" class="view-switch">
+            <button type="button" class="view-switch__item is-active" data-view="featured">精选改枪码</button>
+            <button type="button" class="view-switch__item" data-view="anchor">主播改枪码</button>
+            <button type="button" class="view-switch__item" data-view="mine" data-auth-only hidden>我的提交</button>
+            <button type="button" class="view-switch__item" data-view="favorite" data-auth-only hidden>我的收藏</button>
+          </div>
+        </div>
+
         <!-- 公告栏：后台启用中的公告 -->
         <div id="noticeBar" class="notice-bar" hidden>
           <span class="notice-bar__label">公告</span>
@@ -52,14 +62,6 @@
 
         <!-- 广告位：后台配置后轮播展示，无广告时显示合作占位 -->
         <div id="adSlot" class="ad-slot"></div>
-
-        <div id="toolbar" class="toolbar">
-          <div id="viewSwitch" class="view-switch" hidden>
-            <button type="button" class="view-switch__item is-active" data-view="featured">精选改枪码</button>
-            <button type="button" class="view-switch__item" data-view="mine">我的提交</button>
-            <button type="button" class="view-switch__item" data-view="favorite">我的收藏</button>
-          </div>
-        </div>
 
         <div id="gunList" class="guns"></div>
 

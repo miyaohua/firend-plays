@@ -1232,3 +1232,9 @@ body {
   accent-color: #2563eb;
   cursor: pointer;
 }
+
+/* 主播推荐标签 */
+.tag--anchor {
+  color: #1d4ed8;
+  background: #e0ecff;
+}
