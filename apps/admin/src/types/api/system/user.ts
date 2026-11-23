@@ -31,6 +31,10 @@ export interface SysUser extends BaseEntity {
   remark?: string
   /** 最后登录时间 */
   loginTime?: string
+  /** 是否精选用户（1 是 / 0 否） */
+  isFeatured?: string
+  /** 精选时间 */
+  featuredTime?: string | null
 }
 
 export interface UserQuery {

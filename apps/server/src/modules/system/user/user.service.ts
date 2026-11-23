@@ -273,6 +273,18 @@ export class UserService {
     return user
   }
 
+  /** 设为 / 取消精选用户 */
+  public async setFeatured(id: string, isFeatured: string): Promise<string> {
+    const user = await this.userRepository.findOneBy({ id: Equal(id) })
+    if (!user) throw new BusinessException('用户不存在')
+
+    const featured = isFeatured === CommonConstant.STATUS_NORMAL
+    user.isFeatured = isFeatured
+    user.featuredTime = featured ? new Date() : null
+    await this.userRepository.save(user)
+    return featured ? '已设为精选用户' : '已取消精选用户'
+  }
+
   /** 查询用户列表（数据权限条件由 @DataScopeSql 注入；deptId 过滤该部门及其全部子孙部门） */
   public async findList(queryParams: QueryUserDto, ds?: DataScopeCondition) {
     const { skip, take, status, username, nickname, phone, deptId } = queryParams

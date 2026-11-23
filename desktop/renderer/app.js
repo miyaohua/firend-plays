@@ -10,6 +10,8 @@ const state = {
   view: 'featured',
   profile: null,
   profileTab: 'mine',
+  featuredUsers: [],
+  currentFeaturedUser: null,
   bindTicket: null,
   feedbackCodeId: null,
   favorites: [],
@@ -37,6 +39,8 @@ const dom = {
   typesAside: document.getElementById('typesAside'),
   searchBar: document.getElementById('searchBar'),
   profileView: document.getElementById('profileView'),
+  usersView: document.getElementById('usersView'),
+  featuredUsersBtn: document.getElementById('featuredUsersBtn'),
   typeList: document.getElementById('typeList'),
   gunList: document.getElementById('gunList'),
   codeList: document.getElementById('codeList'),
@@ -414,7 +418,7 @@ function sanitizeNoticeHtml(html) {
 
 function renderNoticeBar() {
   const hasNotice = state.notices.length > 0
-  dom.noticeBar.hidden = !hasNotice || state.view === 'profile'
+  dom.noticeBar.hidden = !hasNotice || state.view === 'profile' || state.view === 'users' || state.view === 'userDetail'
   if (hasNotice) dom.noticeBarText.textContent = state.notices[0].title
 }
 
@@ -756,16 +760,20 @@ async function switchView(view) {
 /** 根据当前视图显隐各区块：个人主页时隐藏筛选与列表 */
 function applyViewVisibility() {
   const isProfile = state.view === 'profile'
+  const isUsers = state.view === 'users' || state.view === 'userDetail'
   const loggedIn = Boolean(state.user)
+  const hideContent = isProfile || isUsers
+
   dom.profileView.hidden = !isProfile
-  dom.typesAside.hidden = isProfile
-  dom.adSlot.hidden = isProfile
+  dom.usersView.hidden = !isUsers
+  dom.typesAside.hidden = hideContent
+  dom.adSlot.hidden = hideContent
   renderNoticeBar()
-  dom.gunList.hidden = isProfile
-  dom.searchBar.hidden = isProfile
-  dom.codeList.hidden = isProfile
-  dom.viewSwitch.hidden = !loggedIn || isProfile
-  dom.toolbar.hidden = !loggedIn || isProfile
+  dom.gunList.hidden = hideContent
+  dom.searchBar.hidden = hideContent
+  dom.codeList.hidden = hideContent
+  dom.viewSwitch.hidden = !loggedIn || hideContent
+  dom.toolbar.hidden = !loggedIn || hideContent
 }
 
 function updateAuthUi() {
@@ -792,6 +800,172 @@ function maskPhone(phone) {
 }
 
 /** 打开个人主页：拉取用户资料、我的投稿与收藏数 */
+/* ---------------- 精选用户 ---------------- */
+
+function renderUsersLoading(message = '精选用户加载中…') {
+  dom.usersView.replaceChildren()
+  const tip = document.createElement('p')
+  tip.className = 'user-card__meta'
+  tip.textContent = message
+  dom.usersView.append(tip)
+}
+
+async function loadFeaturedUsers() {
+  try {
+    state.featuredUsers = await window.desktop.getFeaturedUsers()
+  } catch {
+    state.featuredUsers = []
+  }
+}
+
+async function openFeaturedUsers() {
+  state.view = 'users'
+  applyViewVisibility()
+  renderUsersLoading()
+
+  if (!state.featuredUsers.length) await loadFeaturedUsers()
+  renderFeaturedUsers()
+}
+
+function renderFeaturedUsers() {
+  dom.usersView.replaceChildren()
+
+  const head = document.createElement('div')
+  head.className = 'users-head'
+  const title = document.createElement('h2')
+  title.className = 'users-title'
+  title.textContent = `精选用户（${state.featuredUsers.length}）`
+  const back = document.createElement('button')
+  back.type = 'button'
+  back.className = 'users-back'
+  back.textContent = '← 返回精选'
+  back.addEventListener('click', () => switchView('featured'))
+  head.append(title, back)
+
+  if (!state.featuredUsers.length) {
+    const empty = document.createElement('p')
+    empty.className = 'user-card__meta'
+    empty.textContent = '还没有精选用户'
+    dom.usersView.append(head, empty)
+    return
+  }
+
+  const grid = document.createElement('div')
+  grid.className = 'users-grid'
+  for (const user of state.featuredUsers) {
+    const card = document.createElement('button')
+    card.type = 'button'
+    card.className = 'user-card'
+    card.addEventListener('click', () => openUserDetail(user))
+
+    const avatar = document.createElement('div')
+    avatar.className = 'user-card__avatar'
+    if (user.avatarData) {
+      const image = document.createElement('img')
+      image.src = user.avatarData
+      image.alt = user.nickname || '用户头像'
+      avatar.append(image)
+    } else {
+      avatar.textContent = String(user.nickname || '?').slice(0, 1).toUpperCase()
+    }
+
+    const info = document.createElement('div')
+    const name = document.createElement('p')
+    name.className = 'user-card__name'
+    name.textContent = user.nickname || '匿名用户'
+    const meta = document.createElement('p')
+    meta.className = 'user-card__meta'
+    meta.textContent = `${user.codeCount} 条改枪码`
+    info.append(name, meta)
+
+    card.append(avatar, info)
+    grid.append(card)
+  }
+
+  dom.usersView.append(head, grid)
+}
+
+async function openUserDetail(user) {
+  state.currentFeaturedUser = user
+  state.view = 'userDetail'
+  applyViewVisibility()
+  dom.usersView.replaceChildren()
+  renderUsersLoading('正在加载该用户的改枪码…')
+
+  let data
+  try {
+    data = await window.desktop.getUserCodes(user.id)
+  } catch (error) {
+    dom.usersView.replaceChildren()
+    const tip = document.createElement('p')
+    tip.className = 'user-card__meta'
+    tip.textContent = normalizeError(error)
+    dom.usersView.append(tip)
+    return
+  }
+
+  dom.usersView.replaceChildren()
+
+  const head = document.createElement('div')
+  head.className = 'users-head'
+  const back = document.createElement('button')
+  back.type = 'button'
+  back.className = 'users-back'
+  back.textContent = '← 返回用户列表'
+  back.addEventListener('click', () => {
+    state.view = 'users'
+    applyViewVisibility()
+    renderFeaturedUsers()
+  })
+  head.append(back)
+
+  const profile = document.createElement('div')
+  profile.className = 'user-detail__header'
+  const avatar = document.createElement('div')
+  avatar.className = 'user-card__avatar user-card__avatar--lg'
+  if (user.avatarData) {
+    const image = document.createElement('img')
+    image.src = user.avatarData
+    image.alt = user.nickname || '用户头像'
+    avatar.append(image)
+  } else {
+    avatar.textContent = String(user.nickname || '?').slice(0, 1).toUpperCase()
+  }
+  const info = document.createElement('div')
+  const name = document.createElement('h2')
+  name.className = 'users-title'
+  name.textContent = data.user.nickname || user.nickname
+  const meta = document.createElement('p')
+  meta.className = 'user-card__meta'
+  meta.textContent = `${data.codes.length} 条改枪码`
+  info.append(name, meta)
+  profile.append(avatar, info)
+
+  const list = document.createElement('div')
+  list.className = 'user-detail__list'
+  if (!data.codes.length) {
+    const empty = document.createElement('p')
+    empty.className = 'user-card__meta'
+    empty.textContent = '该用户还没有提交改枪码'
+    list.append(empty)
+  } else {
+    for (const record of data.codes) {
+      list.append(
+        createCodeCard({
+          id: record.id,
+          code: record.code,
+          remark: record.remark,
+          gunLabel: record.gunLabel,
+          isFeatured: record.isFeatured === '1',
+          isMine: false,
+        }),
+      )
+    }
+  }
+
+  dom.usersView.append(head, profile, list)
+}
+
 async function openProfile() {
   if (!state.user) {
     openLoginModal()
@@ -1671,6 +1845,16 @@ async function handleSubmitCode() {
 /* ---------------- 启动 ---------------- */
 
 async function refreshAll() {
+  if (state.view === 'users') {
+    await loadFeaturedUsers()
+    renderFeaturedUsers()
+    return
+  }
+  if (state.view === 'userDetail' && state.currentFeaturedUser) {
+    await openUserDetail(state.currentFeaturedUser)
+    return
+  }
+
   await loadData()
   if (state.user) {
     await loadMine()
@@ -1715,6 +1899,7 @@ async function bootstrap() {
   dom.forgotSubmit.addEventListener('click', handleForgotSave)
   dom.feedbackSubmit.addEventListener('click', handleFeedback)
   dom.noticeBar.addEventListener('click', openNoticeModal)
+  dom.featuredUsersBtn.addEventListener('click', openFeaturedUsers)
   dom.noticeList.addEventListener('click', (event) => {
     const link = event.target.closest('a')
     if (!link) return

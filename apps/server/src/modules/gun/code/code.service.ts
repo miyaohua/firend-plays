@@ -269,6 +269,71 @@ export class GunCodeService {
     return isFeatured ? '已设为精选' : '已取消精选'
   }
 
+  /** 公开精选用户列表：含头像、昵称与改枪码数量 */
+  public async findFeaturedUsers() {
+    const users = await this.userService.getRepository().find({
+      where: { isFeatured: CommonConstant.STATUS_NORMAL, status: CommonConstant.STATUS_NORMAL },
+      select: { id: true, username: true, nickname: true, avatar: true, featuredTime: true },
+      order: { featuredTime: 'DESC' },
+      take: 100,
+    })
+    if (!users.length) return []
+
+    const counts = await this.gunCodeRepository
+      .createQueryBuilder('code')
+      .select('code.userId', 'userId')
+      .addSelect('COUNT(1)', 'count')
+      .where('code.userId IN (:...ids)', { ids: users.map((user) => user.id) })
+      .groupBy('code.userId')
+      .getRawMany<{ userId: string; count: string }>()
+    const countMap = new Map(counts.map((row) => [row.userId, Number(row.count)]))
+
+    return users.map((user) => ({
+      id: user.id,
+      nickname: user.nickname || this.maskUsername(user.username),
+      avatar: user.avatar || null,
+      codeCount: countMap.get(user.id) ?? 0,
+      featuredTime: this.formatTime(user.featuredTime),
+    }))
+  }
+
+  /** 公开精选用户详情：仅精选用户可查，返回该用户的全部改枪码 */
+  public async findUserCodes(userId: string) {
+    if (!userId) throw new BusinessException('用户 ID 不能为空')
+
+    const user = await this.userService.getRepository().findOneBy({
+      id: Equal(userId),
+      isFeatured: CommonConstant.STATUS_NORMAL,
+      status: CommonConstant.STATUS_NORMAL,
+    })
+    if (!user) throw new BusinessException('该用户未被精选')
+
+    const codes = await this.gunCodeRepository.find({
+      where: { userId: Equal(userId) },
+      order: { isFeatured: 'DESC', createTime: 'DESC' },
+      take: 200,
+    })
+
+    return {
+      user: {
+        id: user.id,
+        nickname: user.nickname || this.maskUsername(user.username),
+        avatar: user.avatar || null,
+        codeCount: codes.length,
+      },
+      codes: codes.map((record) => ({
+        id: record.id,
+        dictType: record.dictType,
+        gunValue: record.gunValue,
+        gunLabel: record.gunLabel,
+        code: record.code,
+        remark: record.remark || null,
+        isFeatured: record.isFeatured,
+        createTime: this.formatTime(record.createTime),
+      })),
+    }
+  }
+
   /** 公开精选列表：无需登录，按分类 → 枪械分组返回，不含用户 ID 等敏感字段 */
   public async findFeaturedPublic(): Promise<FeaturedGroupView[]> {
     return this.findPublicGrouped({ isFeatured: CommonConstant.STATUS_NORMAL })

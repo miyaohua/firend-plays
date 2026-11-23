@@ -346,6 +346,32 @@ ipcMain.handle('auth:verifyBindOld', (_event, code) => requestApi('/auth/bindPho
 /** 绑定手机号 */
 ipcMain.handle('auth:bindPhone', (_event, form) => requestApi('/auth/bindPhone', { method: 'POST', body: form, auth: true }))
 
+/** 公开精选用户列表：头像统一转 data URL */
+ipcMain.handle('user:featuredUsers', async () => {
+  const users = await requestApi('/gun/code/featured-users')
+  const origin = API_BASE.replace(/\/api$/, '')
+
+  return Promise.all(
+    users.map(async (user) => {
+      if (!user.avatar) return { ...user, avatarData: null }
+      try {
+        const source = user.avatar
+        const url = /^https?:/i.test(source) ? source : `${origin}${source.startsWith('/') ? '' : '/api/'}${source}`
+        const response = await fetch(url)
+        if (!response.ok) return { ...user, avatarData: null }
+        const buffer = Buffer.from(await response.arrayBuffer())
+        const mime = response.headers.get('content-type') || 'image/png'
+        return { ...user, avatarData: `data:${mime};base64,${buffer.toString('base64')}` }
+      } catch {
+        return { ...user, avatarData: null }
+      }
+    }),
+  )
+})
+
+/** 精选用户下的全部改枪码 */
+ipcMain.handle('gun:userCodes', (_event, userId) => requestApi(`/gun/code/by-user?userId=${encodeURIComponent(userId)}`))
+
 /** 启用中的公告（公开）：正文图片转 data URL，避免放宽渲染进程 CSP */
 ipcMain.handle('notice:active', async () => {
   const notices = await requestApi('/notice/active')

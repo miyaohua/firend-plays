@@ -631,4 +631,9 @@ INSERT INTO `sys_menu` VALUES ('2026-11-19 16:30:00', '2026-11-19 16:30:00', NUL
 INSERT INTO `sys_notice` VALUES ('2026-11-19 16:30:00', '2026-11-19 16:30:00', NULL, 'admin', 'admin', 'b1722513-357c-4843-b4b1-695c7b70d8ea', '欢迎使用改枪坊', '精选改枪码每日更新，欢迎在客户端收藏、复制或提交自己的方案。', 1, '1');
 
 
+-- ----------------------------
+-- Records of sys_menu（用户精选）
+-- ----------------------------
+INSERT INTO `sys_menu` VALUES ('2026-11-20 15:30:00', '2026-11-20 15:30:00', NULL, 'admin', 'admin', '23f49348-e2e6-46aa-bcdd-a71129e517c0', '8762a399-1606-496c-98ee-1fed23bcedc7', NULL, NULL, 'F', NULL, '用户精选', '1', 'system:user:feature', '1', 99, '0', '1');
+
 SET FOREIGN_KEY_CHECKS = 1;

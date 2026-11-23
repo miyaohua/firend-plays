@@ -3,9 +3,10 @@ import { Excel } from '@/common/decorator/excel.decorator'
 import { ExcelType } from '@/common/constant/excel.constant'
 import { BaseEntity } from '../base.entity'
 import { RoleEntity } from './role.entity'
-import { Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, Entity, Index, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm'
 
 @Entity('sys_user')
+@Index('idx_sys_user_featured', ['isFeatured'])
 export class UserEntity extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
@@ -57,6 +58,12 @@ export class UserEntity extends BaseEntity {
 
   @Column({ name: 'login_time', comment: '最后登录时间', type: 'varchar', length: 20, nullable: true, default: null })
   loginTime: string
+
+  @Column({ name: 'is_featured', type: 'char', length: 1, comment: '是否精选用户（1 是 0 否）', default: CommonConstant.STATUS_DISABLE })
+  isFeatured: string
+
+  @Column({ name: 'featured_time', type: 'datetime', comment: '精选时间', nullable: true })
+  featuredTime: Date
 
   /** 用户角色（owning side，JoinTable sys_user_role），数据权限与功能权限取全部角色并集 */
   @ManyToMany(() => RoleEntity, (role) => role.users, { cascade: true })

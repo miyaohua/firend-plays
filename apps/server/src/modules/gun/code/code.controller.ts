@@ -17,6 +17,20 @@ export class GunCodeController {
     return this.gunCodeService.findFeaturedPublic()
   }
 
+  /** 公开精选用户列表 */
+  @Public()
+  @Get('featured-users')
+  public findFeaturedUsers() {
+    return this.gunCodeService.findFeaturedUsers()
+  }
+
+  /** 公开精选用户详情与其改枪码 */
+  @Public()
+  @Get('by-user')
+  public findUserCodes(@Query('userId') userId: string) {
+    return this.gunCodeService.findUserCodes(userId)
+  }
+
   /** 公开数据概览：改枪码总数、精选数、武器分类与枪械数量（首页使用） */
   @Public()
   @Get('statistics')

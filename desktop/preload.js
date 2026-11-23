@@ -50,6 +50,10 @@ contextBridge.exposeInMainWorld('desktop', {
 
   /** 启用中的公告 */
   getNotices: () => ipcRenderer.invoke('notice:active'),
+  /** 精选用户列表 */
+  getFeaturedUsers: () => ipcRenderer.invoke('user:featuredUsers'),
+  /** 精选用户下的改枪码 */
+  getUserCodes: (userId) => ipcRenderer.invoke('gun:userCodes', userId),
   /** 当前广告（含图片 data URL） */
   getAds: () => ipcRenderer.invoke('ad:current'),
   /** 广告曝光 / 点击上报 */

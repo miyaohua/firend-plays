@@ -66,6 +66,14 @@ export class UserController {
     return this.userService.updatePassword(userId, updateDto)
   }
 
+  /** 设为 / 取消精选用户 */
+  @Put('featured')
+  @RequirePermissions(['system:user:feature'])
+  @Operlog({ title: '用户管理', businessType: BusinessType.UPDATE })
+  public setFeatured(@Body() updateDto: UpdateUserFeaturedDto) {
+    return this.userService.setFeatured(updateDto.id, updateDto.isFeatured)
+  }
+
   /** 查询用户分页列表（按部门数据范围过滤） */
   @Get('list')
   @RequirePermissions(['system:user:query'])

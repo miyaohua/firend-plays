@@ -28,6 +28,11 @@ export class UserRequest {
   }
 
   /** 重置密码（按用户名定位，重置成功后强制该用户重新登录） */
+  /** 设为 / 取消精选用户 */
+  static setFeatured(data: { id: string; isFeatured: string }): Promise<string> {
+    return request.put('/system/user/featured', data)
+  }
+
   static resetPassword(data: { username: string; password: string }): Promise<string> {
     return request.put('/system/user/resetPassword', data)
   }

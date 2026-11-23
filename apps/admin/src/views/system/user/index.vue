@@ -31,10 +31,17 @@
         <template #status="{ row }">
           <DictTag :options="sys_normal_disable" :value="row.status" />
         </template>
+        <template #isFeatured="{ row }">
+          <el-tag v-if="row.isFeatured === '1'" type="warning">精选</el-tag>
+          <span v-else>-</span>
+        </template>
         <template #action="{ row }">
           <el-link v-permissions="['system:user:update']" type="primary" @click="handleEdit(row)">修改</el-link>
           <el-link v-permissions="['system:user:update']" type="primary" @click="handleResetPwd(row)">重置密码</el-link>
           <el-link v-permissions="['system:user:delete']" type="primary" @click="handleDelete(row)">删除</el-link>
+          <el-link v-permissions="['system:user:feature']" type="warning" @click="handleFeatured(row)">
+            {{ row.isFeatured === '1' ? '取消精选' : '设为精选' }}
+          </el-link>
         </template>
       </ProTable>
 
@@ -95,8 +102,9 @@ const columns: ProTableColumn<User.SysUser>[] = [
   { align: 'center', prop: 'email', label: '用户邮箱', showOverflowTooltip: true, minWidth: 180 },
   { align: 'center', label: '性别', slot: 'gender', width: 80, printFormatter: (row) => sys_user_sex.value.find((item) => item.dictValue === String(row.gender))?.dictLabel ?? String(row.gender ?? '') },
   { align: 'center', label: '状态', slot: 'status', width: 80, printFormatter: (row) => sys_normal_disable.value.find((item) => item.dictValue === String(row.status))?.dictLabel ?? String(row.status ?? '') },
+  { align: 'center', label: '精选', slot: 'isFeatured', width: 80 },
   { align: 'center', prop: 'createTime', label: '创建时间', minWidth: 170 },
-  { align: 'center', slot: 'action', label: '操作', fixed: 'right', width: 190 },
+  { align: 'center', slot: 'action', label: '操作', fixed: 'right', width: 250 },
 ]
 
 async function getList() {
@@ -153,6 +161,15 @@ function handleEdit(row: User.SysUser) {
 
 function handleResetPwd(row: User.SysUser) {
   resetPwdDialogRef.value?.open(row)
+}
+
+async function handleFeatured(record: User.SysUser) {
+  const willFeatured = record.isFeatured !== '1'
+  const { confirm } = await TipModal.confirm(willFeatured ? '确认将该用户设为精选用户？用户会出现在客户端「精选用户」列表。' : '确认取消该用户的精选标记？')
+  if (!confirm) return
+  await UserRequest.setFeatured({ id: record.id, isFeatured: willFeatured ? '1' : '0' })
+  TipModal.msgSuccess(willFeatured ? '已设为精选用户' : '已取消精选')
+  getList()
 }
 
 async function handleDelete(row?: User.SysUser) {

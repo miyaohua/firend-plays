@@ -137,3 +137,12 @@ export class UpdateProfileDto {
   @Matches(/^uploads\/[\w-]+\.(jpe?g|png|webp|gif)$/, { message: '头像地址不合法' })
   avatar: string
 }
+
+/** 精选用户标记 */
+export class UpdateUserFeaturedDto {
+  @IsNotEmpty({ message: '用户 ID 不能为空' })
+  id: string
+
+  @IsIn(['1', '0'], { message: '精选标记仅支持 1 或 0' })
+  isFeatured: string
+}
