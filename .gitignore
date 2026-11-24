@@ -27,3 +27,6 @@ apps/server/.env*
 
 # 本地上传目录（运行时生成，不随代码入库）
 apps/server/uploads
+
+# macOS 目录元数据
+.DS_Store
