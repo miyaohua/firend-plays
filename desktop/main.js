@@ -447,6 +447,8 @@ ipcMain.handle('clipboard:write', (_event, text) => {
 
 app.whenReady().then(async () => {
   loadPrefs()
+  // macOS 开发模式默认显示 Electron 图标，显式设置 Dock 图标与安装包保持一致
+  if (process.platform === 'darwin' && app.dock) app.dock.setIcon(path.join(__dirname, 'build', 'icon.png'))
   // 最多等 3 秒，接口不可达时不阻塞窗口启动
   await Promise.race([restoreSession(), new Promise((resolve) => setTimeout(resolve, 3000))])
   Menu.setApplicationMenu(null)
